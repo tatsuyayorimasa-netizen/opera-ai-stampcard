@@ -203,7 +203,33 @@ textarea{min-height:70px;resize:vertical}
 .book.loading .cell{opacity:.55}
 .searching{font-size:12px;color:var(--ink-soft);text-align:center}
 
-.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 22px 18px;border-top:1px dashed var(--line);margin:0 8px}
+/* 課題 */
+.taskcard{border:1.5px dashed var(--line);border-radius:12px;background:#FFFCF5;padding:12px 14px;display:grid;gap:6px;font-size:13px}
+.taskcard .q{font-weight:700;color:var(--matcha);font-size:12px;letter-spacing:.06em}
+.taskcard .t{line-height:1.7}
+.pill{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:2px 10px;justify-self:start}
+.pill.ok{background:#F9E3DA;color:var(--shu-deep)}.pill.pending{background:#FFF3C4;color:#7A5B12}
+.pill.returned{background:#FBE0DA;color:var(--shu)}.pill.none{background:#EEF4EF;color:var(--matcha)}.pill.out{background:#F1ECE4;color:var(--ink-soft)}
+.teacher{background:#fff;border-left:3px solid var(--shu);padding:6px 10px;border-radius:0 8px 8px 0;font-size:12px}
+.seal.wait{border-color:var(--gold);color:#9A7A3A;font-weight:700;line-height:1.35;text-align:center}
+.seal.back{border-color:var(--shu);color:var(--shu);font-weight:700;line-height:1.35;text-align:center}
+.seal.att{border-color:#B9CDBF;color:var(--matcha);font-weight:700;line-height:1.35;text-align:center}
+.uketsuke{width:180px;height:180px;border-radius:50%;border:3px dashed var(--matcha);display:grid;place-items:center;color:var(--matcha);
+  font-family:var(--f-title);font-size:34px;background:rgba(253,248,238,.9);animation:slam .6s cubic-bezier(.2,1.5,.4,1) both}
+.overlay .sub{position:absolute;top:calc(50% + 160px);left:16px;right:16px;text-align:center;font-size:13px;color:var(--ink-soft);margin:0;font-weight:500}
+/* 管理：課題の確認 */
+.review{display:grid;gap:8px}
+.rv{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;gap:6px;background:#FFFCF5}
+.rv .top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.rv .who{font-weight:700;font-size:12px}
+.rv .ans{white-space:pre-wrap;font-size:12px;max-height:9em;overflow:auto;background:#fff;border-radius:6px;padding:6px 8px}
+.rv .acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.rv .acts input{flex:1 1 100%;min-width:0;padding:6px 8px;font-size:12px;border-radius:8px}
+.mini{font:inherit;font-size:12px;font-weight:700;border-radius:8px;padding:6px 12px;cursor:pointer;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+.mini.ok{background:var(--shu);border-color:var(--shu);color:#fff}
+.badge-wait{font-size:11px;font-weight:700;color:#7A5B12;background:#FFF3C4;border-radius:999px;padding:1px 8px;margin-left:4px}
+
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 14px 18px;border-top:1px dashed var(--line);margin:0 8px}
 .tab{font:inherit;font-size:11px;font-weight:700;color:var(--ink-soft);background:none;border:1px solid transparent;border-radius:10px;padding:7px 0 5px;display:grid;justify-items:center;gap:1px;cursor:pointer}
 .tab svg{width:20px;height:20px}
 .tab[aria-selected="true"]{color:var(--shu-deep);background:#F9E3DA;border-color:#F0CDBF}
@@ -254,7 +280,7 @@ textarea{min-height:70px;resize:vertical}
       <div class="today" id="today"></div>
       <h1 id="title">AI研修<br>出席スタンプ</h1>
       <svg class="swash" viewBox="0 0 150 10" aria-hidden="true"><path d="M3 7C40 1 110 1 147 6" stroke="#C9A25A" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
-      <p class="lead">名前を入れて、ひとことアンケートに答えたら<br>はんこを押してね</p>
+      <p class="lead">名前を入れて、ひとことアンケートに答えたら受付してね。<br>その日の課題を出して講師がOKすると、スタンプが押されます</p>
     </div>
 
     <div class="field"><label class="label" for="name">お名前</label><input type="text" id="name" autocomplete="name" placeholder="例）山田 花子"></div>
@@ -272,9 +298,28 @@ textarea{min-height:70px;resize:vertical}
     </div>
 
     <div class="divider"></div>
-    <button class="stampbtn" id="press" disabled>押印</button>
+    <button class="stampbtn" id="press" disabled>受付</button>
     <div class="hint" id="hint" role="status" aria-live="polite">お名前を入れてね</div>
     <div class="foot" id="sessLine"></div>
+  </section>
+
+  <!-- 課題 -->
+  <section class="pane" id="pane-task" hidden>
+    <div class="head">
+      <div class="today">ASSIGNMENT</div>
+      <h1>課題の提出</h1>
+      <svg class="swash" viewBox="0 0 150 10" aria-hidden="true"><path d="M3 7C40 1 110 1 147 6" stroke="#C9A25A" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <p class="lead">研修で出た課題を、次の回までに出してね。<br>講師がOKすると、その回のスタンプが押されます</p>
+    </div>
+    <div class="field"><label class="label" for="taskName">お名前 <small>（受付と同じ書き方で）</small></label><input type="text" id="taskName" placeholder="例）山田 花子"></div>
+    <div class="field"><label class="label" for="taskSession">どの回の課題？</label><select id="taskSession"></select></div>
+    <div class="taskcard" id="taskCard"></div>
+    <div id="taskForm" style="display:grid;gap:16px">
+      <div class="field"><label class="label" for="taskAnswer">回答</label><textarea id="taskAnswer" style="min-height:140px" placeholder="AIに作らせた文章、使った指示文、気づいたことなど"></textarea></div>
+      <div class="field"><label class="label" for="taskUrl">URL <small>（任意：ドキュメントなどの共有リンク）</small></label><input type="text" id="taskUrl" placeholder="https://"></div>
+      <button class="btn" id="taskSend">課題を提出する</button>
+    </div>
+    <div class="hint" id="taskHint" role="status" aria-live="polite"></div>
   </section>
 
   <!-- スタンプ帳 -->
@@ -283,7 +328,7 @@ textarea{min-height:70px;resize:vertical}
       <div class="today">STAMP CARD</div>
       <h1>スタンプ帳</h1>
       <svg class="swash" viewBox="0 0 150 10" aria-hidden="true"><path d="M3 7C40 1 110 1 147 6" stroke="#C9A25A" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
-      <p class="lead" id="bookLead">全4回、ぜんぶ集めたら修了です</p>
+      <p class="lead" id="bookLead">出席＋課題の提出で1こ。全4こ集めたら修了です</p>
     </div>
     <div class="progress" id="progress"></div>
     <div class="book" id="book"></div>
@@ -297,7 +342,7 @@ textarea{min-height:70px;resize:vertical}
       <div class="today">ADMIN</div>
       <h1>管理ページ</h1>
       <svg class="swash" viewBox="0 0 150 10" aria-hidden="true"><path d="M3 7C40 1 110 1 147 6" stroke="#C9A25A" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
-      <p class="lead">出席状況とアンケートの確認、日程と写真の変更ができます</p>
+      <p class="lead">課題の確認と押印、出席状況とアンケートの確認、日程などの変更ができます</p>
     </div>
 
     <div id="adminLogin" class="field">
@@ -318,7 +363,7 @@ textarea{min-height:70px;resize:vertical}
 
       <div class="survey" style="gap:12px">
         <div class="survey-title">― 日程と研修タイトル ―</div>
-        <p class="note">変更して保存すると、受付・スタンプ帳・スプレッドシートの「出席一覧」に反映されます。合言葉は空欄なら不要です。</p>
+        <p class="note">変更して保存すると、受付・課題・スタンプ帳・スプレッドシートの「出席一覧」に反映されます。合言葉は空欄なら不要です。課題は受付のあとと「課題」タブに表示されます。</p>
         <div id="sessEditor" style="display:grid;gap:12px"></div>
         <button class="btn" id="saveSessions">日程を保存</button>
         <div class="hint" id="sessHint" role="status" aria-live="polite"></div>
@@ -354,6 +399,8 @@ textarea{min-height:70px;resize:vertical}
   <nav class="tabs" role="tablist">
     <button class="tab" role="tab" id="tab-checkin" aria-selected="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>受付</button>
+    <button class="tab" role="tab" id="tab-task" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>課題</button>
     <button class="tab" role="tab" id="tab-book" aria-selected="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h3"/></svg>スタンプ帳</button>
     <button class="tab" role="tab" id="tab-admin" aria-selected="false">
@@ -365,16 +412,16 @@ textarea{min-height:70px;resize:vertical}
 <p class="demo" id="demo" hidden>プレビュー表示です。ここでの押印はスプレッドシートに記録されません。管理ページはどのパスワードでも開けます。</p>
 <p class="demo" id="creditWrap" hidden><a class="credit" id="credit" target="_blank" rel="noopener"></a></p>
 
-<div class="overlay" id="overlay" hidden><div id="bigStamp"></div><p id="overlayMsg"></p></div>
+<div class="overlay" id="overlay" hidden><div id="bigStamp"></div><p id="overlayMsg"></p><p class="sub" id="overlaySub"></p></div>
 
 <script>
 (function(){
   var DEFAULT={courseTitle:'AI研修',client:'東京オペラシティビル株式会社',organizer:'株式会社フェローズ',venue:'東京オペラシティタワー',
     photoUrl:'',photoLabel:'東京オペラシティタワー',photoCredit:'',photoCreditUrl:'',left:[],right:[],
-    sessions:[{no:1,date:'2026-10-20',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'生成AIの基本と社内ルール',needsKeyword:false},
-              {no:2,date:'2026-11-04',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'文書作成・要約の実践',needsKeyword:false},
-              {no:3,date:'2026-11-18',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'データ整理と資料づくり',needsKeyword:false},
-              {no:4,date:'2026-12-02',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'自部署の業務に組み込む',needsKeyword:false}]};
+    sessions:[{no:1,date:'2026-10-20',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'生成AIの基本と社内ルール',needsKeyword:false,task:'AIに自分の自己紹介文を書かせ、自分で手直しした完成版を提出してください。'},
+              {no:2,date:'2026-11-04',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'文書作成・要約の実践',needsKeyword:false,task:'最近受け取った長いメールや資料をAIで3行に要約し、要約文と使った指示文を提出してください。'},
+              {no:3,date:'2026-11-18',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'データ整理と資料づくり',needsKeyword:false,task:'手元のバラバラなメモをAIで表に整理し、できた表と使った指示文を提出してください。'},
+              {no:4,date:'2026-12-02',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'自部署の業務に組み込む',needsKeyword:false,task:'自部署でAIに任せたい作業を1つ選んで試し、結果と短縮できた時間を提出してください。'}]};
   /* ▼ GitHub Pages で使うときは、Apps Script をウェブアプリとして公開したURL（…/exec）をここに貼る ▼ */
   var API_URL='https://script.google.com/macros/s/AKfycbxxPod3-N-hK0YMKkgyqMKZaf7Qz_jVK85o5J6cbZGmpeQvLCTYUsaWytbEi7Dl9TEm/exec';
   /* ▲ ここまで ▲ */
@@ -449,28 +496,40 @@ textarea{min-height:70px;resize:vertical}
     if(!ok){hint('お名前を入れてね');$('press').disabled=true;return}
     if(!s1||!s2){hint('ふりかえりの2問に答えてね');$('press').disabled=true;return}
     if(current&&current.needsKeyword&&!$('keyword').value.trim()){hint('今日の合言葉を入れてね');$('press').disabled=true;return}
-    hint('準備OK！ はんこをどうぞ');$('press').disabled=false;
+    hint('準備OK！ 受付をどうぞ');$('press').disabled=false;
   }
+
+  /* 各回の状態：ok=押印済み / pending=課題の確認待ち / returned=差し戻し / att=出席のみ / none=未出席 */
+  function stOf(e){
+    if(!e)return 'none';
+    if(typeof e==='string')return 'ok';
+    if(e.st==='ok')return 'ok';
+    if(e.st==='pending')return 'pending';
+    if(e.st==='returned')return 'returned';
+    return e.att?'att':'none';
+  }
+  function demoBucket(nm){var k=norm(nm);return (demoStamps[k]=demoStamps[k]||{})}
 
   $('press').addEventListener('click',function(){
     var p={name:$('name').value.trim(),dept:$('dept').value.trim(),session:current.no,keyword:$('keyword').value,
       satisfaction:radio('satisfaction'),understanding:radio('understanding'),usefulness:radio('usefulness'),wish:radio('wish'),comment:$('comment').value};
     store.set('opc_name',p.name);store.set('opc_dept',p.dept);
-    $('press').disabled=true;hint('押しています…');
+    $('press').disabled=true;hint('受付しています…');
     var ok=function(r){
       stamps=r.stamps||{};saveCache(p.name,stamps);loadedFor=norm(p.name);
-      $('bigStamp').innerHTML=hanko(r.date,'big');
-      $('overlayMsg').textContent='第'+p.session+'回、出席しました！';
+      $('bigStamp').innerHTML='<div class="uketsuke">受付</div>';
+      $('overlayMsg').textContent='第'+p.session+'回の受付ができました！';
+      $('overlaySub').textContent='今日の課題を次の回までに提出して、講師がOKするとスタンプが押されます。';
       $('overlay').hidden=false;
-      setTimeout(function(){$('overlay').hidden=true;resetForm();$('bookName').value=p.name;renderBook(p.name);show('book')},1600);
+      setTimeout(function(){$('overlay').hidden=true;resetForm();$('taskName').value=p.name;$('bookName').value=p.name;renderBook(p.name);openTask(p.session)},2600);
     };
     var ng=function(e){hint(String(e&&e.message||e||'記録できませんでした').replace(/^Error:\s*/,''),true);$('press').disabled=false};
     if(live){rpc('submit',[p],ok,ng)}
     else{
-      var k=norm(p.name);demoStamps[k]=demoStamps[k]||{};
-      if(demoStamps[k][p.session])return ng('第'+p.session+'回はもう押してあります');
-      var d=jst();demoStamps[k][p.session]=(d.getUTCMonth()+1)+'/'+d.getUTCDate();
-      setTimeout(function(){ok({stamps:demoStamps[k],date:demoStamps[k][p.session]})},300);
+      var bk=demoBucket(p.name),cur=bk[p.session];
+      if(cur&&cur.att)return ng('第'+p.session+'回の受付はもう済んでいます');
+      var d=jst();bk[p.session]={att:(d.getUTCMonth()+1)+'/'+d.getUTCDate(),st:'none',ok:'',note:''};
+      setTimeout(function(){ok({stamps:bk})},300);
     }
   });
   function resetForm(){
@@ -480,7 +539,7 @@ textarea{min-height:70px;resize:vertical}
 
   /* ===== スタンプ帳（端末に覚えた結果をすぐ出し、裏で最新に更新） ===== */
   var loadedFor='',seq=0;
-  function cacheKey(nm){return 'opc_st_'+norm(nm)}
+  function cacheKey(nm){return 'opc_st2_'+norm(nm)}
   function saveCache(nm,st){store.set(cacheKey(nm),JSON.stringify(st||{}))}
   function readCache(nm){try{var v=store.get(cacheKey(nm));return v?JSON.parse(v):null}catch(e){return null}}
 
@@ -488,23 +547,29 @@ textarea{min-height:70px;resize:vertical}
     var n=0;
     $('book').className='book'+(searching?' loading':'');
     $('book').innerHTML=cfg.sessions.map(function(s,i){
-      var got=stamps[s.no];if(got)n++;
-      return '<div class="cell'+(got?' done':'')+'" style="--r:'+TILT[i%4]+'deg"><div class="no">第'+s.no+'回</div><div class="when">'+md(s.date)+' '+esc(s.start||'')+'</div>'+
-        '<div class="seal">'+(got?hanko(got,'hanko'):'まだ')+'</div><div class="th">'+esc(s.theme)+'</div></div>';
+      var e=stamps[s.no],st=stOf(e),seal;
+      if(st==='ok'){n++;seal='<div class="seal">'+hanko(typeof e==='string'?e:(e.ok||e.att),'hanko')+'</div>'}
+      else if(st==='pending')seal='<div class="seal wait">課題<br>確認中</div>';
+      else if(st==='returned')seal='<div class="seal back">課題<br>出し直し</div>';
+      else if(st==='att')seal='<div class="seal att">受付済<br>課題まち</div>';
+      else seal='<div class="seal">まだ</div>';
+      return '<div class="cell'+(st==='ok'?' done':'')+'" style="--r:'+TILT[i%4]+'deg"><div class="no">第'+s.no+'回</div><div class="when">'+md(s.date)+' '+esc(s.start||'')+'</div>'+
+        seal+'<div class="th">'+esc(s.theme)+'</div></div>';
     }).join('');
     $('progress').innerHTML=name?(esc(name)+' さん　<b>'+n+'</b>/ '+cfg.sessions.length+' こ'+(searching?'<div class="searching">最新の状況をたしかめています…</div>':'')):'';
-    $('bookLead').textContent=n===cfg.sessions.length?'全回コンプリート！ おつかれさまでした':'全'+cfg.sessions.length+'回、ぜんぶ集めたら修了です';
+    $('bookLead').textContent=n===cfg.sessions.length?'全回コンプリート！ おつかれさまでした':'出席＋課題の提出で1こ。全'+cfg.sessions.length+'こ集めたら修了です';
+    if(!$('pane-task').hidden)renderTaskCard();
   }
-  function lookup(nm){
+  function lookup(nm,after){
     nm=String(nm||'').trim();if(!nm)return;
     store.set('opc_name',nm);
     var my=++seq,cached=readCache(nm);
     stamps=cached||{};renderBook(nm,true);
-    if(!live){stamps=demoStamps[norm(nm)]||{};loadedFor=norm(nm);setTimeout(function(){if(my===seq)renderBook(nm)},150);return}
+    if(!live){stamps=demoBucket(nm);loadedFor=norm(nm);setTimeout(function(){if(my===seq){renderBook(nm);after&&after()}},150);return}
     var dept=norm(nm)===norm($('name').value)?$('dept').value.trim():'';
     rpc('getStamps',[nm,dept],function(r){
       if(my!==seq)return;
-      stamps=r||{};saveCache(nm,stamps);loadedFor=norm(nm);renderBook(nm);
+      stamps=r||{};saveCache(nm,stamps);loadedFor=norm(nm);renderBook(nm);after&&after();
     },function(m){
       if(my!==seq)return;
       renderBook(nm);$('progress').insertAdjacentHTML('beforeend','<div class="searching">'+esc(m)+'</div>');
@@ -513,12 +578,66 @@ textarea{min-height:70px;resize:vertical}
   $('openBook').addEventListener('click',function(){lookup($('bookName').value)});
   $('bookName').addEventListener('keydown',function(e){if(e.key==='Enter')lookup($('bookName').value)});
 
+  /* ===== 課題の提出 ===== */
+  function fillTaskSessions(){
+    var sel=$('taskSession'),keep=sel.value;
+    sel.innerHTML=cfg.sessions.map(function(s){return '<option value="'+s.no+'">第'+s.no+'回　'+esc(s.theme)+'</option>'}).join('');
+    if(keep)sel.value=keep;
+  }
+  /* 出すべき課題の回：受付済みでまだ押印されていない回のうち一番古いもの。なければ直近の回 */
+  function suggestTask(){
+    var t=todayStr(),ss=cfg.sessions;
+    var todo=ss.filter(function(s){var st=stOf(stamps[s.no]);return st==='att'||st==='returned'})[0];
+    if(todo)return todo.no;
+    var past=ss.filter(function(s){return s.date<=t});
+    return (past[past.length-1]||ss[0]).no;
+  }
+  function renderTaskCard(){
+    var no=Number($('taskSession').value),s=cfg.sessions.filter(function(x){return x.no===no})[0];if(!s)return;
+    var e=stamps[no],st=stOf(e),nm=$('taskName').value.trim();
+    var pill={ok:['ok','スタンプ済み'+(e&&e.ok?'（'+e.ok+'）':'')],pending:['pending','提出済み・講師の確認待ち'],returned:['returned','出し直しをお願いします'],
+      att:['none','受付済み・課題はまだ'],none:['out',nm&&loadedFor===norm(nm)?'この回の受付記録がありません':'お名前を入れると状況が出ます']}[st];
+    $('taskCard').innerHTML='<div class="q">第'+no+'回の課題</div><div class="t">'+(s.task?esc(s.task):'この回の課題はまだ設定されていません')+'</div>'+
+      '<span class="pill '+pill[0]+'">'+pill[1]+'</span>'+(e&&e.note?'<div class="teacher"><b>講師より：</b>'+esc(e.note)+'</div>':'');
+    var canSend=st==='att'||st==='returned'||(st==='pending');
+    $('taskForm').hidden=!canSend;
+    $('taskSend').textContent=st==='pending'?'内容を出し直す':'課題を提出する';
+  }
+  function openTask(no){
+    show('task');fillTaskSessions();
+    var nm=$('taskName').value.trim()||$('name').value.trim();$('taskName').value=nm;
+    var go=function(){$('taskSession').value=String(no||suggestTask());renderTaskCard()};
+    if(nm&&norm(nm)!==loadedFor){lookup(nm,go)}else go();
+  }
+  $('taskSession').addEventListener('change',function(){ahint('taskHint','');renderTaskCard()});
+  $('taskName').addEventListener('change',function(){var nm=$('taskName').value.trim();if(nm)lookup(nm,function(){$('taskSession').value=String(suggestTask());renderTaskCard()})});
+  $('taskSend').addEventListener('click',function(){
+    var p={name:$('taskName').value.trim(),dept:norm($('taskName').value)===norm($('name').value)?$('dept').value.trim():'',
+      session:Number($('taskSession').value),answer:$('taskAnswer').value.trim(),url:$('taskUrl').value.trim()};
+    if(!p.name)return ahint('taskHint','お名前を入れてください',true);
+    if(!p.answer&&!p.url)return ahint('taskHint','回答かURLのどちらかを入れてください',true);
+    if(p.url&&!/^https?:\/\//.test(p.url))return ahint('taskHint','URLは https:// から始まるものを入れてください',true);
+    $('taskSend').disabled=true;ahint('taskHint','提出しています…');
+    var done=function(r){
+      $('taskSend').disabled=false;stamps=r.stamps||{};saveCache(p.name,stamps);loadedFor=norm(p.name);
+      $('taskAnswer').value='';$('taskUrl').value='';renderTaskCard();renderBook(p.name);
+      ahint('taskHint','提出しました！ 講師がOKするとスタンプが押されます');
+    };
+    var fail=function(m){$('taskSend').disabled=false;ahint('taskHint',m,true)};
+    if(live)rpc('submitTask',[p],done,fail);
+    else{var bk=demoBucket(p.name),e=bk[p.session];if(!e||!e.att)return fail('第'+p.session+'回の受付記録が見つかりません');
+      e.st='pending';e.note='';setTimeout(function(){done({stamps:bk})},300)}
+  });
+
   function show(which){
-    ['checkin','book','admin'].forEach(function(k){
+    var was=['checkin','task','book','admin'].filter(function(k){return !$('pane-'+k).hidden})[0];
+    ['checkin','task','book','admin'].forEach(function(k){
       $('pane-'+k).hidden=which!==k;$('tab-'+k).setAttribute('aria-selected',which===k);
     });
+    if(was!==which)try{window.scrollTo(0,0)}catch(e){}
   }
   $('tab-checkin').onclick=function(){show('checkin')};
+  $('tab-task').onclick=function(){openTask()};
   $('tab-book').onclick=function(){
     show('book');
     var nm=$('bookName').value.trim()||$('name').value.trim();
@@ -611,6 +730,31 @@ textarea{min-height:70px;resize:vertical}
     return '<div class="bars">'+ks.sort(function(a,b){return obj[b]-obj[a]}).map(function(k){
       return '<div class="bar"><span>'+esc(k)+'</span><i style="width:'+Math.round(obj[k]/total*100)+'%"></i><em>'+obj[k]+'</em></div>'}).join('')+'</div>';
   }
+  var openSess={};
+  function reviewList(s){
+    if(!s.tasks||!s.tasks.length)return '<div class="empty">出席者がいません</div>';
+    return '<div class="review">'+s.tasks.map(function(t){
+      var sub=t.sub,who='<span class="who">'+esc(t.name)+(t.dept?'（'+esc(t.dept)+'）':'')+'</span>',key=' data-no="'+s.no+'" data-name="'+esc(t.name)+'" data-dept="'+esc(t.dept||'')+'"';
+      if(!sub)return '<div class="rv"><div class="top">'+who+'<span class="pill out">未提出</span></div>'+
+        '<div class="acts"><button class="mini" data-act="direct"'+key+'>紙などで確認済み → 押印</button></div></div>';
+      var pill=sub.state==='OK'?'<span class="pill ok">押印済み</span>':sub.state==='差し戻し'?'<span class="pill returned">差し戻し中</span>':'<span class="pill pending">確認待ち</span>';
+      var body=(sub.answer?'<div class="ans">'+esc(sub.answer)+'</div>':'')+(sub.url?'<a href="'+esc(sub.url)+'" target="_blank" rel="noopener" style="font-size:12px;color:var(--matcha);font-weight:700;word-break:break-all">'+esc(sub.url)+' ↗</a>':'')+
+        (sub.note?'<div class="teacher"><b>コメント：</b>'+esc(sub.note)+'</div>':'');
+      var acts=sub.state==='OK'?'':'<div class="acts"><input type="text" id="note'+sub.row+'" placeholder="コメント（任意・差し戻し理由など）" maxlength="300">'+
+        '<button class="mini ok" data-act="ok" data-row="'+sub.row+'">OK・押印</button>'+(sub.state==='差し戻し'?'':'<button class="mini" data-act="return" data-row="'+sub.row+'">差し戻す</button>')+'</div>';
+      return '<div class="rv"><div class="top">'+who+pill+'</div><div style="font-size:11px;color:var(--ink-soft)">提出 '+esc(sub.at)+'</div>'+body+acts+'</div>';
+    }).join('')+'</div>';
+  }
+  $('adminSessions').addEventListener('toggle',function(e){var d=e.target;if(d.dataset&&d.dataset.no)openSess[d.dataset.no]=d.open},true);
+  $('adminSessions').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-act]');if(!b)return;
+    var act=b.dataset.act;b.disabled=true;b.textContent='保存中…';
+    var fail=function(m){b.disabled=false;b.textContent='やり直す';ahint('sessHint',m,true)};
+    if(act==='direct')call('adminApproveDirect',[adminPw,Number(b.dataset.no),b.dataset.name,b.dataset.dept],renderAdmin,fail);
+    else{var note=($('note'+b.dataset.row)||{}).value||'';
+      if(act==='return'&&!note.trim()){b.disabled=false;b.textContent='差し戻す';var n=$('note'+b.dataset.row);n.placeholder='差し戻す理由を書いてください';n.focus();return}
+      call('adminReview',[adminPw,Number(b.dataset.row),act,note],renderAdmin,fail)}
+  });
   function renderAdmin(d){
     adminState=d;
     $('adminSheet').innerHTML=d.sheetUrl?'<a href="'+esc(d.sheetUrl)+'" target="_blank" rel="noopener">スプレッドシートを開く ↗</a>':'見本データ';
@@ -619,13 +763,15 @@ textarea{min-height:70px;resize:vertical}
     $('stSat').textContent=w('satisfaction');$('stUnd').textContent=w('understanding');
     $('adminSessions').innerHTML=d.sessions.map(function(s,i){
       var body=s.count?(
+        '<div class="sub">課題の確認'+(s.pending?'<span class="badge-wait">確認待ち '+s.pending+'</span>':'')+'</div>'+reviewList(s)+
         '<div>満足度 <b>'+s.satisfaction.toFixed(1)+'</b>　理解度 <b>'+s.understanding.toFixed(1)+'</b>'+(s.keyword?'　合言葉「'+esc(s.keyword)+'」':'')+'</div>'+
         '<div class="sub">お仕事で使えそう？</div>'+bars(s.usefulness,s.count)+
         '<div class="sub">次回あったら嬉しいのは？</div>'+bars(s.wish,s.count)+
         '<div class="sub">出席者</div><div class="names">'+s.people.map(function(p){return '<span title="'+esc(p.at)+'">'+esc(p.name)+(p.dept?'（'+esc(p.dept)+'）':'')+'</span>'}).join('')+'</div>'+
         '<div class="sub">ひとこと</div>'+(s.comments.length?s.comments.map(function(c){return '<div class="cmt"><b>'+esc(c.name)+'</b>'+esc(c.text)+'</div>'}).join(''):'<div class="empty">なし</div>')
       ):'<div class="empty">まだ出席者はいません</div>';
-      return '<details class="sess"'+(i===0&&s.count?' open':'')+'><summary><span class="n">第'+s.no+'回</span><span class="t">'+md(s.date)+' '+esc(s.start||'')+' '+esc(s.theme)+'</span><span class="c">'+s.count+'人</span></summary><div class="body">'+body+'</div></details>';
+      var open=openSess[s.no]!==undefined?openSess[s.no]:(s.pending>0||(i===0&&s.count));
+      return '<details class="sess" data-no="'+s.no+'"'+(open?' open':'')+'><summary><span class="n">第'+s.no+'回</span><span class="t">'+md(s.date)+' '+esc(s.start||'')+' '+esc(s.theme)+'</span><span class="c">'+(s.pending?'<span class="badge-wait">待 '+s.pending+'</span> ':'')+'押印 '+(s.done||0)+'/'+s.count+'人</span></summary><div class="body">'+body+'</div></details>';
     }).join('');
     renderSessEditor(d.sessions);
     renderDecoEditor(d.deco,d.sessions);
@@ -641,7 +787,8 @@ textarea{min-height:70px;resize:vertical}
         '<input type="time" id="'+k+'_s" data-f="start" value="'+esc(s.start||'')+'" aria-label="開始時刻"><span>〜</span>'+
         '<input type="time" id="'+k+'_e" data-f="end" value="'+esc(s.end||'')+'" aria-label="終了時刻"></div>'+
         '<input type="text" id="'+k+'_t" data-f="theme" maxlength="40" value="'+esc(s.theme)+'" placeholder="研修タイトル" aria-label="第'+(i+1)+'回の研修タイトル">'+
-        '<input type="text" id="'+k+'_k" data-f="keyword" maxlength="30" value="'+esc(s.keyword||'')+'" placeholder="合言葉（任意）" aria-label="第'+(i+1)+'回の合言葉"></div>';
+        '<input type="text" id="'+k+'_k" data-f="keyword" maxlength="30" value="'+esc(s.keyword||'')+'" placeholder="合言葉（任意）" aria-label="第'+(i+1)+'回の合言葉">'+
+        '<textarea id="'+k+'_q" data-f="task" maxlength="200" style="min-height:58px;font-size:13px;padding:8px 10px" placeholder="この回の課題（例：AIで自己紹介文を作り、手直しして提出）" aria-label="第'+(i+1)+'回の課題">'+esc(s.task||'')+'</textarea></div>';
     }).join('');
   }
   $('saveSessions').onclick=function(){
@@ -654,8 +801,8 @@ textarea{min-height:70px;resize:vertical}
     }
     ahint('sessHint','保存しています…');
     call('adminSaveSessions',[adminPw,list],function(d){
-      cfg.sessions=d.sessions.map(function(s){return {no:s.no,date:s.date,start:s.start,end:s.end,time:s.start+(s.end&&s.end!==s.start?'–'+s.end:''),theme:s.theme,needsKeyword:!!s.keyword}});
-      setupCheckin();renderDeco();renderBook($('bookName').value.trim());renderAdmin(d);
+      cfg.sessions=d.sessions.map(function(s){return {no:s.no,date:s.date,start:s.start,end:s.end,time:s.start+(s.end&&s.end!==s.start?'–'+s.end:''),theme:s.theme,task:s.task||'',needsKeyword:!!s.keyword}});
+      setupCheckin();renderDeco();fillTaskSessions();renderBook($('bookName').value.trim());renderAdmin(d);
       ahint('sessHint','保存しました。受付とスタンプ帳に反映されています');
     },function(m){ahint('sessHint',m,true)});
   };
@@ -742,21 +889,30 @@ textarea{min-height:70px;resize:vertical}
   var demoPhotos={main:'',mainLabel:'東京オペラシティタワー',left:[{url:ph('見本の写真 1','#9FB3C8','#E7C9A6'),caption:'第1回の様子'},{url:ph('見本の写真 2','#C9A6A0','#F1DDB8'),caption:'グループワーク'}],
                   right:[{url:ph('見本の写真 3','#8FB5A0','#E8D7AE'),caption:'会場からの眺め'},{url:ph('見本の写真 4','#B7A3C4','#F0D2C2'),caption:'講師より'}]};
   var demoKw={};
+  /* 見本：第1回の出席者3人と、その課題の状況 */
+  var demoPeople=[{name:'山田 花子',dept:'施設管理部',at:'10/20 14:02'},{name:'佐藤 一郎',dept:'営業部',at:'10/20 14:05'},{name:'見本 太郎',dept:'',at:'10/20 15:58'}];
+  var demoSubs={'山田 花子':{row:2,at:'10/27 09:12',answer:'【AIの下書き】施設管理部の山田です。設備の点検計画を担当しています…\n【手直し】語尾を自分の話し方に合わせ、趣味の話を足しました。',url:'',state:'確認待ち',note:''},
+                '見本 太郎':{row:3,at:'10/24 18:40',answer:'（講師が直接確認）',url:'',state:'OK',note:''}};
   function demoData(){
     return {sheetUrl:'',totalPeople:3,photos:demoPhotos,deco:decoList(),sessions:cfg.sessions.map(function(s){
-      var base={no:s.no,date:s.date,start:s.start,end:s.end,theme:s.theme,keyword:demoKw[s.no]||''};
-      return s.no===1?Object.assign(base,{count:3,satisfaction:4.3,understanding:3.7,
+      var base={no:s.no,date:s.date,start:s.start,end:s.end,theme:s.theme,task:s.task||'',keyword:demoKw[s.no]||''};
+      if(s.no!==1)return Object.assign(base,{count:0,satisfaction:null,understanding:null,usefulness:{},wish:{},people:[],comments:[],tasks:[],pending:0,done:0});
+      var tasks=demoPeople.map(function(p){return {name:p.name,dept:p.dept,sub:demoSubs[p.name]||null}});
+      return Object.assign(base,{count:3,satisfaction:4.3,understanding:3.7,
         usefulness:{'試してみたい':2,'明日から使う':1},wish:{'手を動かす時間':2,'自部署の事例':1},
-        people:[{name:'山田 花子',dept:'施設管理部',at:'10/20 14:02'},{name:'佐藤 一郎',dept:'営業部',at:'10/20 14:05'},{name:'見本 太郎',dept:'',at:'10/20 15:58'}],
-        comments:[{name:'佐藤 一郎',text:'議事録づくりにすぐ使えそうです。'}]})
-        :Object.assign(base,{count:0,satisfaction:null,understanding:null,usefulness:{},wish:{},people:[],comments:[]})})};
+        people:demoPeople,comments:[{name:'佐藤 一郎',text:'議事録づくりにすぐ使えそうです。'}],tasks:tasks,
+        pending:tasks.filter(function(t){return t.sub&&t.sub.state==='確認待ち'}).length,done:tasks.filter(function(t){return t.sub&&t.sub.state==='OK'}).length});
+    })};
   }
+  function demoRowName(row){for(var k in demoSubs)if(demoSubs[k].row===row)return k}
   var demoAdmin={
     adminLogin:function(){return demoData()},
     adminSavePhotos:function(pw,d){demoPhotos=d;return d},
     adminSaveDeco:function(pw,list){return list},
+    adminReview:function(pw,row,act,note){var k=demoRowName(row);if(k){demoSubs[k].state=act==='ok'?'OK':'差し戻し';demoSubs[k].note=note||''}return demoData()},
+    adminApproveDirect:function(pw,no,name){demoSubs[name]={row:Object.keys(demoSubs).length+2,at:'今',answer:'（講師が直接確認）',url:'',state:'OK',note:''};return demoData()},
     adminSaveSessions:function(pw,list){
-      cfg.sessions=list.map(function(s,i){demoKw[i+1]=s.keyword;return {no:i+1,date:s.date,start:s.start,end:s.end||s.start,theme:s.theme,needsKeyword:!!s.keyword}});
+      cfg.sessions=list.map(function(s,i){demoKw[i+1]=s.keyword;return {no:i+1,date:s.date,start:s.start,end:s.end||s.start,theme:s.theme,task:s.task||'',needsKeyword:!!s.keyword}});
       return demoData();
     }
   };
@@ -779,7 +935,7 @@ textarea{min-height:70px;resize:vertical}
     },function(){renderBook(savedName)});
   }else{
     $('demo').hidden=false;
-    demoStamps[norm('山田 花子')]={1:'10/20'};
+    demoStamps[norm('山田 花子')]={1:{att:'10/20',st:'ok',ok:'10/27',note:''},2:{att:'11/4',st:'pending',ok:'',note:''}};
     applyConfig();
     if(!$('name').value)$('name').value='山田 花子';
     $('bookName').value=$('name').value;stamps=demoStamps[norm($('bookName').value)]||{};loadedFor=norm($('bookName').value);renderBook($('bookName').value);
