@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>オペラシティ AI研修カード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Maru+Gothic:wght@500;700&family=Josefin+Sans:wght@600;700&display=swap">
+<style>
+/* Layout: 写真をやわらかく敷いた背景の中央に、スマホ幅の和紙カード。上にリボン、下にタブ（受付／スタンプ帳） */
+:root{
+  color-scheme:light;
+  --wash-a:#F7E9D2;   /* 生成り */
+  --wash-b:#F3DCD6;   /* 桜鼠 */
+  --paper:#FDF8EE;
+  --ink:#4A3B32;      /* こげ茶 */
+  --ink-soft:#8C7A6B;
+  --shu:#C7372A;      /* 朱 */
+  --shu-deep:#9E2A20;
+  --matcha:#2F6B4F;   /* リボンの緑 */
+  --gold:#C9A25A;
+  --line:#E2D2B4;
+  --f-title:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  --f-latin:"Josefin Sans","Avenir Next",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+html,body{margin:0;min-height:100%}
+body{background:var(--wash-a);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;padding-inline:16px}
+
+/* 背景：写真 → やわらかい色かけ → 青海波 */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:linear-gradient(120deg,var(--wash-a),var(--wash-b))}
+.bg img{position:absolute;inset:-30px;width:calc(100% + 60px);height:calc(100% + 60px);object-fit:cover;object-position:center 35%;filter:blur(3px) saturate(.9);opacity:0;transition:opacity 1.2s}
+.bg img.on{opacity:.55}
+.bg::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(247,233,210,.72),rgba(243,220,214,.78))}
+.bg::after{content:"";position:absolute;inset:0;opacity:.35;background-size:56px 28px;
+  background-image:radial-gradient(circle at 50% 100%,transparent 9px,#fff 10px,transparent 11px,transparent 15px,#fff 16px,transparent 17px,transparent 21px,#fff 22px,transparent 23px),
+                   radial-gradient(circle at 0 50%,transparent 9px,#fff 10px,transparent 11px,transparent 15px,#fff 16px,transparent 17px,transparent 21px,#fff 22px,transparent 23px);}
+.dots{position:fixed;inset:0;z-index:0;pointer-events:none}
+.dots i{position:absolute;border-radius:50%;opacity:.55;animation:float 9s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-14px)}}
+@media (prefers-reduced-motion:reduce){.dots i{animation:none}}
+
+/* 左右の写真（マスキングテープで貼ったポラロイド） */
+.stage{position:relative;z-index:1;display:grid;grid-template-columns:1fr minmax(0,400px) 1fr;gap:40px;max-width:1180px;margin:0 auto;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px);display:grid;gap:34px;justify-items:center;padding-top:40px;min-width:0}
+.polaroid{position:relative;background:#fff;padding:10px 10px 0;width:min(100%,250px);box-shadow:0 14px 26px -16px rgba(90,60,40,.55);transform:rotate(var(--r,-3deg))}
+.polaroid img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#EFE6D8}
+.polaroid figcaption{font-size:12px;font-weight:700;text-align:center;padding:7px 4px 10px;color:var(--ink);min-height:1em}
+.polaroid::before{content:"";position:absolute;top:-11px;left:50%;width:84px;height:22px;transform:translateX(-50%) rotate(var(--t,4deg));
+  background:repeating-linear-gradient(45deg,rgba(201,162,90,.55) 0 6px,rgba(231,199,124,.55) 6px 12px);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.polaroid.broken img{display:none}
+.polaroid.broken::after{content:"写真を読み込めません";display:grid;place-items:center;aspect-ratio:4/3;font-size:12px;color:var(--ink-soft);background:#F4EEE3}
+@media (max-width:900px){
+  .stage{grid-template-columns:minmax(0,400px);justify-content:center;gap:0}
+  .side{position:static;grid-auto-flow:column;grid-auto-columns:150px;justify-content:center;gap:18px;padding:6px 0 26px;overflow-x:auto}
+  .side:empty{display:none}
+  #sideL{order:2}#sideR{order:3}.card{order:1}
+  .polaroid{padding:6px 6px 0}.polaroid figcaption{font-size:10px;padding:4px 2px 6px}
+  .polaroid::before{width:56px;height:16px;top:-8px}
+}
+
+/* カード */
+.card{position:relative;z-index:1;width:100%;max-width:400px;margin:56px auto 32px;background:var(--paper);border-radius:14px;
+  box-shadow:0 2px 0 #EFE2C6,0 24px 50px -24px rgba(110,70,40,.45)}
+.card::before{content:"";position:absolute;inset:8px;border:1px dashed var(--line);border-radius:9px;pointer-events:none}
+.corner{position:absolute;width:14px;height:14px;border:2px solid var(--gold);pointer-events:none}
+.corner.tl{top:6px;left:6px;border-right:0;border-bottom:0}.corner.tr{top:6px;right:6px;border-left:0;border-bottom:0}
+.corner.bl{bottom:6px;left:6px;border-right:0;border-top:0}.corner.br{bottom:6px;right:6px;border-left:0;border-top:0}
+.ribbon{position:absolute;top:-17px;left:50%;transform:translateX(-50%);white-space:nowrap;background:linear-gradient(#3A7D5E,var(--matcha));color:#F4F1E6;
+  font-family:var(--f-latin);font-weight:700;font-size:11px;letter-spacing:.14em;padding:9px 22px 7px;border-radius:8px;box-shadow:0 6px 12px -6px rgba(30,70,50,.6)}
+.pane{padding:34px 26px 18px;display:grid;gap:16px}
+
+/* 写真の窓 */
+.window{position:relative;height:138px;border-radius:10px;overflow:hidden;background:linear-gradient(160deg,#9BB0C9,#E8C9A8)}
+.window img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block}
+.window svg{position:absolute;inset:0;width:100%;height:100%}
+.window .tag{position:absolute;left:10px;bottom:8px;background:rgba(253,248,238,.92);color:var(--ink);font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px}
+
+.head{text-align:center;display:grid;gap:2px}
+.today{font-family:var(--f-latin);font-size:12px;letter-spacing:.08em;color:var(--ink-soft)}
+.today b{font-family:var(--f-body);font-weight:700;color:var(--ink)}
+h1{font-family:var(--f-title);font-weight:800;color:var(--shu);font-size:30px;line-height:1.25;margin:2px 0 0;letter-spacing:.06em;text-wrap:balance}
+.swash{display:block;margin:4px auto 0;width:150px;height:10px}
+.lead{font-size:13px;color:var(--ink-soft);margin:4px 0 0}
+
+.label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--shu-deep)}
+.label::before{content:"";width:7px;height:7px;background:var(--gold);transform:rotate(45deg)}
+.label small{color:var(--ink-soft);font-weight:500}
+input[type=text],select,textarea{width:100%;font:inherit;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:11px 14px}
+input::placeholder,textarea::placeholder{color:#BFAF9D}
+textarea{min-height:70px;resize:vertical}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.field{display:grid;gap:8px}
+
+.survey{border:1.5px dashed var(--line);border-radius:12px;padding:14px 14px 16px;display:grid;gap:14px;background:#FFFCF5}
+.survey-title{font-size:12px;font-weight:700;color:var(--matcha);letter-spacing:.06em;text-align:center}
+.q{display:grid;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.q legend{padding:0;margin-bottom:8px;font-size:13px;font-weight:700}
+.faces{display:flex;justify-content:space-between;gap:6px}
+.faces label{flex:1;display:grid;justify-items:center;gap:2px;cursor:pointer;font-size:10px;color:var(--ink-soft)}
+.faces input,.chips input{position:absolute;opacity:0;pointer-events:none}
+.faces .dot{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-family:var(--f-title);font-weight:800;font-size:17px;color:var(--ink-soft);background:#fff;transition:transform .15s}
+.faces label:has(input:checked) .dot{background:var(--shu);border-color:var(--shu);color:#fff;transform:rotate(-8deg) scale(1.08)}
+.faces label:focus-within .dot{outline:2px solid var(--gold);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips label{position:relative;font-size:12px;padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:#fff;cursor:pointer}
+.chips label:has(input:checked){background:var(--matcha);border-color:var(--matcha);color:#fff}
+.chips label:focus-within{outline:2px solid var(--gold);outline-offset:2px}
+
+.divider{border-top:1px dashed var(--line);margin:2px 0}
+.stampbtn{justify-self:center;width:118px;height:118px;border-radius:50%;border:0;padding:0;cursor:pointer;position:relative;
+  background:radial-gradient(circle at 40% 35%,#E0574A,var(--shu) 55%,var(--shu-deep));color:#fff;font-family:var(--f-title);font-weight:800;font-size:23px;letter-spacing:.1em;
+  box-shadow:0 0 0 7px #FBE9E3,0 0 0 9px #F1C9BF,0 10px 18px -6px rgba(158,42,32,.6);transition:transform .12s}
+.stampbtn:active{transform:scale(.94)}
+.stampbtn:disabled{background:radial-gradient(circle at 40% 35%,#CDBDB4,#B3A097 60%,#9E8B82);box-shadow:0 0 0 7px #F3ECE6,0 0 0 9px #E6D8CF;cursor:default}
+.hint{text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);margin-top:-4px;min-height:1.6em}
+.hint.err{color:var(--shu)}
+.foot{text-align:center;font-size:11px;color:var(--ink-soft)}
+
+/* スタンプ帳 */
+.book{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cell{border:1.5px dashed var(--line);border-radius:12px;padding:10px 8px 12px;display:grid;justify-items:center;gap:4px;background:#FFFCF5;text-align:center;min-width:0}
+.cell .no{font-family:var(--f-title);font-weight:800;font-size:15px;color:var(--ink)}
+.cell .when{font-size:11px;color:var(--ink-soft)}
+.cell .th{font-size:11px;line-height:1.45;min-height:3em}
+.seal{width:76px;height:76px;display:grid;place-items:center;border-radius:50%;border:1.5px dashed #E5D6BD;color:#CDBBA2;font-size:11px}
+.cell.done .seal{border:0}
+.hanko{width:80px;height:80px;color:var(--shu)}
+.cell.done .hanko{transform:rotate(var(--r))}
+.progress{text-align:center;font-size:13px}
+.progress b{font-family:var(--f-title);font-size:26px;color:var(--shu);margin:0 2px}
+.btn{font:inherit;font-weight:700;letter-spacing:.08em;color:#fff;border:0;border-radius:10px;padding:12px;cursor:pointer;background:linear-gradient(#D24537,var(--shu-deep));box-shadow:0 6px 12px -8px rgba(158,42,32,.8)}
+
+/* タブ */
+/* 管理 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stat{background:#FFFCF5;border:1.5px dashed var(--line);border-radius:12px;padding:8px 4px}
+.stat b{display:block;font-family:var(--f-title);font-size:24px;color:var(--shu);line-height:1.2;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--ink-soft)}
+.sess{border:1.5px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.sess summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 12px}
+.sess summary::-webkit-details-marker{display:none}
+.sess .n{font-family:var(--f-title);font-weight:800;color:var(--shu-deep)}
+.sess .t{font-size:12px;color:var(--ink-soft);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sess .c{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.sess .body{padding:0 12px 12px;display:grid;gap:10px;font-size:12px}
+.bars{display:grid;gap:4px}
+.bar{display:grid;grid-template-columns:7.5em 1fr 2.4em;gap:6px;align-items:center}
+.bar i{display:block;height:8px;border-radius:4px;background:var(--matcha);min-width:2px}
+.bar em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+.sub{font-weight:700;color:var(--shu-deep);font-size:12px}
+.names{display:flex;flex-wrap:wrap;gap:4px}
+.names span{background:#F6EFE2;border-radius:999px;padding:1px 9px}
+.cmt{background:#FFFCF5;border-left:3px solid var(--gold);padding:4px 8px;border-radius:0 6px 6px 0}
+.cmt b{display:block;font-size:11px;color:var(--ink-soft)}
+.empty{color:var(--ink-soft)}
+.photoset{display:grid;gap:10px}
+.photorow{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center}
+.photorow .thumb{width:52px;height:40px;border-radius:6px;background:#F1E8D9 center/cover no-repeat;border:1px solid var(--line)}
+.photorow .inputs{display:grid;gap:4px;min-width:0}
+.photorow input{padding:7px 10px;font-size:12px;border-radius:8px}
+.btn.ghost{background:#fff;color:var(--shu-deep);border:1.5px solid #F0CDBF;box-shadow:none}
+.adminbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+.adminbar a{color:var(--matcha);font-weight:700}
+.note{font-size:11px;color:var(--ink-soft);margin:0}
+
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 22px 18px;border-top:1px dashed var(--line);margin:0 8px}
+.tab{font:inherit;font-size:11px;font-weight:700;color:var(--ink-soft);background:none;border:1px solid transparent;border-radius:10px;padding:7px 0 5px;display:grid;justify-items:center;gap:1px;cursor:pointer}
+.tab svg{width:20px;height:20px}
+.tab[aria-selected="true"]{color:var(--shu-deep);background:#F9E3DA;border-color:#F0CDBF}
+
+/* 押印の瞬間 */
+.overlay{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:rgba(253,248,238,.82)}
+.overlay .big{width:210px;height:210px;color:var(--shu);animation:slam .6s cubic-bezier(.2,1.5,.4,1) both}
+.overlay p{position:absolute;top:calc(50% + 130px);left:0;right:0;text-align:center;margin:0;font-weight:700;font-size:15px}
+@keyframes slam{0%{transform:scale(2.4) rotate(-14deg);opacity:0}55%{opacity:1}100%{transform:scale(1) rotate(-8deg);opacity:1}}
+@media (prefers-reduced-motion:reduce){.overlay .big{animation:none;transform:rotate(-8deg)}}
+.demo{position:relative;z-index:1;max-width:400px;margin:-18px auto 28px;font-size:11px;color:var(--ink-soft);text-align:center}
+.credit{display:block;margin-top:4px;color:inherit}
+</style>
+
+</head>
+<body>
+<div class="bg" aria-hidden="true"><img id="bgPhoto" alt=""></div>
+<div class="dots" aria-hidden="true">
+  <i style="left:8%;top:22%;width:12px;height:12px;background:#5E9E86"></i>
+  <i style="left:17%;top:70%;width:8px;height:8px;background:#E07A6B;animation-delay:-3s"></i>
+  <i style="left:84%;top:16%;width:10px;height:10px;background:#E7C77C;animation-delay:-5s"></i>
+  <i style="left:91%;top:52%;width:13px;height:13px;background:#E07A6B;animation-delay:-2s"></i>
+  <i style="left:76%;top:84%;width:7px;height:7px;background:#5E9E86;animation-delay:-6s"></i>
+  <i style="left:4%;top:46%;width:9px;height:9px;background:#E7C77C;animation-delay:-4s"></i>
+</div>
+
+<div class="stage">
+<aside class="side" id="sideL" aria-label="写真（左）"></aside>
+<div class="card">
+  <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+  <div class="ribbon">AI TRAINING · OPERA CITY</div>
+
+  <!-- 受付 -->
+  <section class="pane" id="pane-checkin">
+    <div class="window">
+      <svg id="winFallback" viewBox="0 0 360 138" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs><linearGradient id="tw" x1="0" x2="1"><stop offset="0" stop-color="#5D6E8C"/><stop offset=".5" stop-color="#8496B3"/><stop offset="1" stop-color="#55657F"/></linearGradient>
+        <pattern id="wn" width="8" height="6" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="6" height="3" fill="#E9EEF6" opacity=".35"/></pattern></defs>
+        <rect x="40" y="88" width="60" height="60" fill="#A99C9A" opacity=".7"/><rect x="250" y="80" width="80" height="70" fill="#A99C9A" opacity=".7"/>
+        <path d="M150 140V30l14-14h32l14 14v110z" fill="url(#tw)"/><path d="M150 140V30l14-14h32l14 14v110z" fill="url(#wn)"/>
+        <rect x="177" y="2" width="6" height="16" fill="#55657F"/>
+      </svg>
+      <img id="winPhoto" alt="東京オペラシティタワー" hidden>
+      <span class="tag">東京オペラシティタワー</span>
+    </div>
+
+    <div class="head">
+      <div class="today" id="today"></div>
+      <h1 id="title">AI研修<br>出席スタンプ</h1>
+      <svg class="swash" viewBox="0 0 150 10" aria-hidden="true"><path d="M3 7C40 1 110 1 147 6" stroke="#C9A25A" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <p class="lead">名前を入れて、ひとことアンケートに答えたら<br>はんこを押してね</p>
+    </div>
+
+    <div class="field"><label class="label" for="name">お名前</label><input type="text" id="name" autocomplete="name" placeholder="例）山田 花子"></div>
+    <div class="field"><label class="label" for="dept">ご所属 <small>（任意）</small></label><input type="text" id="dept" autocomplete="organization-title" placeholder="例）施設管理部"></div>
+    <div class="field" id="sessField" hidden><label class="label" for="session">参加した回</label><select id="session"></select></div>
+    <div class="field" id="kwField" hidden><label class="label" for="keyword">今日の合言葉</label><input type="text" id="keyword" placeholder="会場でお伝えします"></div>
+
+    <div class="survey">
+      <div class="survey-title">― 今日のふりかえり ―</div>
+      <fieldset class="q"><legend>今日の研修、どうでしたか？</legend><div class="faces" data-name="satisfaction" data-ends="いまいち|最高！"></div></fieldset>
+      <fieldset class="q"><legend>わかりやすさは？</legend><div class="faces" data-name="understanding" data-ends="むずかしい|ばっちり"></div></fieldset>
+      <fieldset class="q"><legend>お仕事で使えそう？</legend><div class="chips" data-name="usefulness" data-opts="明日から使う|試してみたい|まだ想像できない"></div></fieldset>
+      <fieldset class="q"><legend>次回あったら嬉しいのは？</legend><div class="chips" data-name="wish" data-opts="実演をもっと|手を動かす時間|自部署の事例|質問タイム"></div></fieldset>
+      <div class="field"><label class="label" for="comment">ひとこと <small>（任意）</small></label><textarea id="comment" placeholder="感想や、講師に聞きたいことなど"></textarea></div>
+    </div>
+
+    <div class="divider"></div>
+    <button class="stampbtn" id="press" disabled>押印</button>
+    <div class="hint" id="hint" role="status" aria-live="polite">お名前を入れてね</div>
+    <div class="foot" id="sessLine"></div>
+  </section>
+
+  <!-- スタンプ帳 -->
+  <section class="pane" id="pane-book" hidden>
+    <div class="head">
+      <div class="today">STAMP CARD</div>
+      <h1>スタンプ帳</h1>
+      <svg class="swash" viewBox="0 0 150 10" aria-hidden="true"><path d="M3 7C40 1 110 1 147 6" stroke="#C9A25A" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <p class="lead" id="bookLead">全4回、ぜんぶ集めたら修了です</p>
+    </div>
+    <div class="progress" id="progress"></div>
+    <div class="book" id="book"></div>
+    <div class="field"><label class="label" for="bookName">お名前</label><input type="text" id="bookName" placeholder="例）山田 花子"></div>
+    <button class="btn" id="openBook">スタンプ帳をひらく</button>
+  </section>
+
+  <!-- 管理 -->
+  <section class="pane" id="pane-admin" hidden>
+    <div class="head">
+      <div class="today">ADMIN</div>
+      <h1>管理ページ</h1>
+      <svg class="swash" viewBox="0 0 150 10" aria-hidden="true"><path d="M3 7C40 1 110 1 147 6" stroke="#C9A25A" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <p class="lead">出席状況とアンケートの確認、写真の設定ができます</p>
+    </div>
+
+    <div id="adminLogin" class="field">
+      <label class="label" for="adminPw">管理者パスワード</label>
+      <input type="text" id="adminPw" autocomplete="off" style="-webkit-text-security:disc" placeholder="パスワード">
+      <button class="btn" id="adminGo">ひらく</button>
+      <div class="hint" id="adminHint" role="status" aria-live="polite"></div>
+    </div>
+
+    <div id="adminBody" hidden style="display:grid;gap:16px">
+      <div class="adminbar"><span id="adminSheet"></span><button class="tab" id="adminReload" style="padding:4px 10px;grid-auto-flow:column;gap:4px">更新</button></div>
+      <div class="stats">
+        <div class="stat"><b id="stPeople">0</b><span>参加者（人）</span></div>
+        <div class="stat"><b id="stSat">–</b><span>満足度 平均</span></div>
+        <div class="stat"><b id="stUnd">–</b><span>理解度 平均</span></div>
+      </div>
+      <div style="display:grid;gap:8px" id="adminSessions"></div>
+
+      <div class="survey" style="gap:12px">
+        <div class="survey-title">― 写真の設定 ―</div>
+        <p class="note">画像のURLを貼り付けて保存すると、全員の画面に反映されます。Googleドライブの共有リンク（リンクを知っている全員が閲覧可）もそのまま使えます。</p>
+        <div class="label">メイン写真（カード上部と背景）</div>
+        <div class="photoset" id="psMain"></div>
+        <div class="label">左側の写真 <small>（最大3枚）</small></div>
+        <div class="photoset" id="psLeft"></div>
+        <div class="label">右側の写真 <small>（最大3枚）</small></div>
+        <div class="photoset" id="psRight"></div>
+        <button class="btn" id="savePhotos">写真を保存</button>
+        <div class="hint" id="photoHint" role="status" aria-live="polite"></div>
+      </div>
+      <button class="btn ghost" id="adminOut">管理ページを閉じる</button>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-checkin" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>受付</button>
+    <button class="tab" role="tab" id="tab-book" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h3"/></svg>スタンプ帳</button>
+    <button class="tab" role="tab" id="tab-admin" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>管理</button>
+  </nav>
+</div>
+<aside class="side" id="sideR" aria-label="写真（右）"></aside>
+</div>
+<p class="demo" id="demo" hidden>プレビュー表示です。ここでの押印はスプレッドシートに記録されません。左右の写真は見本で、管理ページはどのパスワードでも開けます。</p>
+<p class="demo" id="creditWrap" hidden><a class="credit" id="credit" target="_blank" rel="noopener"></a></p>
+
+<div class="overlay" id="overlay" hidden><div id="bigStamp"></div><p id="overlayMsg"></p></div>
+
+<script>
+(function(){
+  var DEFAULT={courseTitle:'AI研修',client:'東京オペラシティビル株式会社',organizer:'株式会社フェローズ',venue:'東京オペラシティタワー',photoUrl:'',photoCredit:'',photoCreditUrl:'',
+    sessions:[{no:1,date:'2026-10-20',time:'14:00–16:00',theme:'生成AIの基本と社内ルール',needsKeyword:false},
+              {no:2,date:'2026-11-04',time:'14:00–16:00',theme:'文書作成・要約の実践',needsKeyword:false},
+              {no:3,date:'2026-11-18',time:'14:00–16:00',theme:'データ整理と資料づくり',needsKeyword:false},
+              {no:4,date:'2026-12-02',time:'14:00–16:00',theme:'自部署の業務に組み込む',needsKeyword:false}]};
+  /* ▼ GitHub Pages で使うときは、Apps Script をウェブアプリとして公開したURL（…/exec）をここに貼る ▼ */
+  var API_URL='https://script.google.com/macros/s/AKfycbwMV4QjdBpveZUD4tr7UAzTLaPfWP94DmJCqejXt4dkfbs30ZoxTTPREP3a9ux3WEJG/exec';
+  /* ▲ ここまで ▲ */
+  var gas=typeof google!=='undefined'&&google.script&&google.script.run;
+  var live=!!API_URL||!!gas;
+  function rpc(fn,args,ok,ng){
+    var fail=function(e){ng(String(e&&e.message||e||'記録できませんでした').replace(/^Error:\s*/,''))};
+    if(API_URL){
+      fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:fn,args:args})})
+        .then(function(r){return r.json()})
+        .then(function(res){res.ok?ok(res.data):fail(res.error)})
+        .catch(function(){fail('通信できませんでした。電波の良いところでもう一度押してください')});
+    }else{var r=google.script.run.withSuccessHandler(ok).withFailureHandler(fail);r[fn].apply(r,args)}
+  }
+  var cfg=DEFAULT,stamps={},current=null,$=function(id){return document.getElementById(id)};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var WD=['日','月','火','水','木','金','土'],TILT=[-9,7,-5,10];
+  var demoStamps={};
+
+  function jst(){return new Date(Date.now()+9*3600e3)}
+  function todayStr(){return jst().toISOString().slice(0,10)}
+  function md(d){var t=new Date(d+'T00:00:00+09:00');return (t.getMonth()+1)+'/'+t.getDate()+'（'+WD[t.getDay()]+'）'}
+
+  function hanko(date,cls){
+    var id='r'+Math.random().toString(36).slice(2,7);
+    return '<svg class="'+cls+'" viewBox="0 0 100 100" aria-hidden="true"><defs><filter id="'+id+'"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="'+(date.length*7)+'"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.5 1.2"/><feComposite in="SourceGraphic" operator="in"/></filter></defs>'+
+      '<g filter="url(#'+id+')"><circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="4.5"/><circle cx="50" cy="50" r="37.5" fill="none" stroke="currentColor" stroke-width="1.3"/>'+
+      '<text x="50" y="52" text-anchor="middle" font-family="Shippori Mincho B1,serif" font-weight="800" font-size="25" fill="currentColor">出席</text>'+
+      '<text x="50" y="71" text-anchor="middle" font-family="Josefin Sans,sans-serif" font-weight="700" font-size="11" fill="currentColor">'+date+'</text></g></svg>';
+  }
+
+  /* 受付画面 */
+  function setupCheckin(){
+    var t=todayStr();
+    current=cfg.sessions.filter(function(s){return s.date===t})[0]||null;
+    var d=jst();
+    $('today').innerHTML=d.getUTCFullYear()+'/'+(d.getUTCMonth()+1)+'/'+d.getUTCDate()+' <b>の出席</b>';
+    if(!current){
+      $('sessField').hidden=false;
+      $('session').innerHTML=cfg.sessions.map(function(s){return '<option value="'+s.no+'">第'+s.no+'回　'+md(s.date)+'</option>'}).join('');
+      var next=cfg.sessions.filter(function(s){return s.date>=t})[0]||cfg.sessions[0];
+      $('session').value=String(next.no);
+      $('session').onchange=pickSession; pickSession();
+    }else{ showSession(current) }
+  }
+  function pickSession(){current=cfg.sessions.filter(function(s){return String(s.no)===$('session').value})[0];showSession(current)}
+  function showSession(s){
+    $('sessLine').textContent='第'+s.no+'回 ・ '+s.theme;
+    $('kwField').hidden=!s.needsKeyword;
+    check();
+  }
+
+  function build(){
+    document.querySelectorAll('.faces').forEach(function(el){
+      var n=el.dataset.name,ends=el.dataset.ends.split('|'),h='';
+      for(var i=1;i<=5;i++)h+='<label><input type="radio" name="'+n+'" id="'+n+i+'" value="'+i+'"><span class="dot">'+i+'</span>'+(i===1?ends[0]:i===5?ends[1]:'&nbsp;')+'</label>';
+      el.innerHTML=h;
+    });
+    document.querySelectorAll('.chips').forEach(function(el){
+      var n=el.dataset.name;
+      el.innerHTML=el.dataset.opts.split('|').map(function(o,i){return '<label><input type="radio" name="'+n+'" id="'+n+i+'" value="'+o+'">'+o+'</label>'}).join('');
+    });
+    document.querySelectorAll('input[type=radio]').forEach(function(r){r.addEventListener('change',check)});
+  }
+  function radio(n){var r=document.querySelector('input[name="'+n+'"]:checked');return r?r.value:''}
+  function hint(t,err){var h=$('hint');h.textContent=t;h.className='hint'+(err?' err':'')}
+  function check(){
+    var ok=$('name').value.trim(),s1=radio('satisfaction'),s2=radio('understanding');
+    if(!ok){hint('お名前を入れてね');$('press').disabled=true;return}
+    if(!s1||!s2){hint('ふりかえりの2問に答えてね');$('press').disabled=true;return}
+    if(current&&current.needsKeyword&&!$('keyword').value.trim()){hint('今日の合言葉を入れてね');$('press').disabled=true;return}
+    hint('準備OK！ はんこをどうぞ');$('press').disabled=false;
+  }
+
+  $('press').addEventListener('click',function(){
+    var p={name:$('name').value.trim(),dept:$('dept').value.trim(),session:current.no,keyword:$('keyword').value,
+      satisfaction:radio('satisfaction'),understanding:radio('understanding'),usefulness:radio('usefulness'),wish:radio('wish'),comment:$('comment').value};
+    store.set('opc_name',p.name);store.set('opc_dept',p.dept);
+    $('press').disabled=true;hint('押しています…');
+    var ok=function(r){
+      stamps=r.stamps;
+      $('bigStamp').innerHTML=hanko(r.date,'big');
+      $('overlayMsg').textContent='第'+p.session+'回、出席しました！';
+      $('overlay').hidden=false;
+      setTimeout(function(){$('overlay').hidden=true;resetForm();$('bookName').value=p.name;renderBook(p.name);show('book')},1600);
+    };
+    var ng=function(e){hint(String(e&&e.message||e||'記録できませんでした').replace(/^Error:\s*/,''),true);$('press').disabled=false};
+    if(live){rpc('submit',[p],ok,ng)}
+    else{
+      var k=p.name;demoStamps[k]=demoStamps[k]||{};
+      if(demoStamps[k][p.session])return ng('第'+p.session+'回はもう押してあります');
+      var d=jst();demoStamps[k][p.session]=(d.getUTCMonth()+1)+'/'+d.getUTCDate();
+      setTimeout(function(){ok({stamps:demoStamps[k],date:demoStamps[k][p.session]})},300);
+    }
+  });
+  function resetForm(){
+    document.querySelectorAll('#pane-checkin input[type=radio]').forEach(function(r){r.checked=false});
+    $('comment').value='';$('keyword').value='';check();
+  }
+
+  /* スタンプ帳 */
+  function renderBook(name){
+    var n=0;
+    $('book').innerHTML=cfg.sessions.map(function(s,i){
+      var got=stamps[s.no];if(got)n++;
+      return '<div class="cell'+(got?' done':'')+'" style="--r:'+TILT[i%4]+'deg"><div class="no">第'+s.no+'回</div><div class="when">'+md(s.date)+'</div>'+
+        '<div class="seal">'+(got?hanko(got,'hanko'):'まだ')+'</div><div class="th">'+s.theme+'</div></div>';
+    }).join('');
+    $('progress').innerHTML=name?(name+' さん　<b>'+n+'</b>/ '+cfg.sessions.length+' こ'):'';
+    $('bookLead').textContent=n===cfg.sessions.length?'全回コンプリート！ おつかれさまでした':'全'+cfg.sessions.length+'回、ぜんぶ集めたら修了です';
+  }
+  $('openBook').addEventListener('click',function(){
+    var nm=$('bookName').value.trim();if(!nm)return;
+    store.set('opc_name',nm);
+    if(live){rpc('getStamps',[nm,store.get('opc_dept')||''],function(r){stamps=r||{};renderBook(nm)},function(){})}
+    else{stamps=demoStamps[nm]||{};renderBook(nm)}
+  });
+
+  function show(which){
+    ['checkin','book','admin'].forEach(function(k){
+      $('pane-'+k).hidden=which!==k;$('tab-'+k).setAttribute('aria-selected',which===k);
+    });
+  }
+  $('tab-checkin').onclick=function(){show('checkin')};
+  $('tab-book').onclick=function(){show('book')};
+  $('tab-admin').onclick=function(){show('admin')};
+
+  /* 左右の写真 */
+  var PTILT=[-4,3,-2],TTILT=[5,-6,3];
+  function esc(t){return String(t||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function renderSide(el,list,flip){
+    el.innerHTML='';
+    (list||[]).forEach(function(p,i){
+      var f=document.createElement('figure');f.className='polaroid';
+      f.style.setProperty('--r',(flip?-PTILT[i%3]:PTILT[i%3])+'deg');f.style.setProperty('--t',TTILT[i%3]+'deg');f.style.margin='0';
+      var img=new Image();img.alt=p.caption||'研修の写真';img.loading='lazy';img.onerror=function(){f.classList.add('broken')};img.src=p.url;
+      var c=document.createElement('figcaption');c.textContent=p.caption||'';
+      f.appendChild(img);f.appendChild(c);el.appendChild(f);
+    });
+  }
+
+  /* 管理ページ */
+  var adminPw='',adminState=null;
+  function ahint(id,t,err){var h=$(id);h.textContent=t;h.className='hint'+(err?' err':'')}
+  function call(fn,args,ok,ng){
+    if(live){rpc(fn,args,ok,ng)}
+    else setTimeout(function(){try{ok(demoAdmin[fn].apply(null,args))}catch(e){ng(e.message)}},250);
+  }
+  $('adminGo').onclick=function(){
+    var pw=$('adminPw').value;if(!pw)return ahint('adminHint','パスワードを入れてください',true);
+    ahint('adminHint','確認しています…');
+    call('adminLogin',[pw],function(d){adminPw=pw;$('adminPw').value='';ahint('adminHint','');$('adminLogin').hidden=true;$('adminBody').hidden=false;renderAdmin(d)},function(m){ahint('adminHint',m,true)});
+  };
+  $('adminPw').addEventListener('keydown',function(e){if(e.key==='Enter')$('adminGo').click()});
+  $('adminReload').onclick=function(){call('adminLogin',[adminPw],renderAdmin,function(m){ahint('photoHint',m,true)})};
+  $('adminOut').onclick=function(){adminPw='';$('adminBody').hidden=true;$('adminLogin').hidden=false;show('checkin')};
+
+  function bars(obj,total){
+    var ks=Object.keys(obj);if(!ks.length)return '<div class="empty">回答なし</div>';
+    return '<div class="bars">'+ks.sort(function(a,b){return obj[b]-obj[a]}).map(function(k){
+      return '<div class="bar"><span>'+esc(k)+'</span><i style="width:'+Math.round(obj[k]/total*100)+'%"></i><em>'+obj[k]+'</em></div>'}).join('')+'</div>';
+  }
+  function renderAdmin(d){
+    adminState=d;
+    $('adminSheet').innerHTML=d.sheetUrl?'<a href="'+esc(d.sheetUrl)+'" target="_blank" rel="noopener">スプレッドシートを開く ↗</a>':'見本データ';
+    $('stPeople').textContent=d.totalPeople;
+    var all=d.sessions.filter(function(s){return s.count}),w=function(k){var n=0,t=0;all.forEach(function(s){n+=s[k]*s.count;t+=s.count});return t?(Math.round(n/t*10)/10).toFixed(1):'–'};
+    $('stSat').textContent=w('satisfaction');$('stUnd').textContent=w('understanding');
+    $('adminSessions').innerHTML=d.sessions.map(function(s,i){
+      var body=s.count?(
+        '<div>満足度 <b>'+s.satisfaction.toFixed(1)+'</b>　理解度 <b>'+s.understanding.toFixed(1)+'</b>'+(s.keyword?'　合言葉「'+esc(s.keyword)+'」':'')+'</div>'+
+        '<div class="sub">お仕事で使えそう？</div>'+bars(s.usefulness,s.count)+
+        '<div class="sub">次回あったら嬉しいのは？</div>'+bars(s.wish,s.count)+
+        '<div class="sub">出席者</div><div class="names">'+s.people.map(function(p){return '<span title="'+esc(p.at)+'">'+esc(p.name)+(p.dept?'（'+esc(p.dept)+'）':'')+'</span>'}).join('')+'</div>'+
+        '<div class="sub">ひとこと</div>'+(s.comments.length?s.comments.map(function(c){return '<div class="cmt"><b>'+esc(c.name)+'</b>'+esc(c.text)+'</div>'}).join(''):'<div class="empty">なし</div>')
+      ):'<div class="empty">まだ出席者はいません</div>';
+      return '<details class="sess"'+(i===0&&s.count?' open':'')+'><summary><span class="n">第'+s.no+'回</span><span class="t">'+md(s.date)+' '+esc(s.theme)+'</span><span class="c">'+s.count+'人</span></summary><div class="body">'+body+'</div></details>';
+    }).join('');
+    fillPhotos(d.photos);
+  }
+
+  function photoRow(p,withCaption,key){
+    var u=p&&p.url||'';
+    return '<div class="photorow"><div class="thumb" style="background-image:'+(u?'url(&quot;'+esc(u)+'&quot;)':'none')+'"></div><div class="inputs">'+
+      '<input type="text" id="'+key+'_u" data-role="url" placeholder="https://… 画像のURLを貼り付け" value="'+esc(u)+'">'+
+      (withCaption?'<input type="text" id="'+key+'_c" data-role="cap" maxlength="30" placeholder="ひとこと（例：第1回の様子）" value="'+esc(p&&p.caption||'')+'">':'')+'</div></div>';
+  }
+  function fillPhotos(ph){
+    ph=ph||{};
+    $('psMain').innerHTML=photoRow({url:ph.main},false,'pm0');
+    $('psLeft').innerHTML=[0,1,2].map(function(i){return photoRow((ph.left||[])[i],true,'pl'+i)}).join('');
+    $('psRight').innerHTML=[0,1,2].map(function(i){return photoRow((ph.right||[])[i],true,'pr'+i)}).join('');
+    document.querySelectorAll('.photorow [data-role=url]').forEach(function(inp){
+      inp.addEventListener('input',function(){var t=inp.closest('.photorow').querySelector('.thumb'),v=inp.value.trim();t.style.backgroundImage=/^https:\/\//.test(v)?'url("'+v.replace(/"/g,'')+'")':'none'});
+    });
+  }
+  function readSet(id){
+    return Array.prototype.map.call($(id).querySelectorAll('.photorow'),function(r){
+      var c=r.querySelector('[data-role=cap]');return {url:r.querySelector('[data-role=url]').value.trim(),caption:c?c.value.trim():''};
+    }).filter(function(p){return p.url});
+  }
+  $('savePhotos').onclick=function(){
+    var bad=[].concat(readSet('psMain'),readSet('psLeft'),readSet('psRight')).filter(function(p){return !/^https:\/\//.test(p.url)});
+    if(bad.length)return ahint('photoHint','URLは https:// から始まるものを入れてください',true);
+    var main=readSet('psMain')[0];
+    var data={main:main?main.url:'',left:readSet('psLeft'),right:readSet('psRight')};
+    ahint('photoHint','保存しています…');
+    call('adminSavePhotos',[adminPw,data],function(saved){
+      ahint('photoHint','保存しました。受付画面にも反映されています');
+      cfg.left=saved.left;cfg.right=saved.right;if(saved.main){cfg.photoUrl=saved.main;cfg.photoCredit=''}
+      applyPhotos();fillPhotos(saved);
+    },function(m){ahint('photoHint',m,true)});
+  };
+
+  /* プレビュー用の見本 */
+  function ph(label,c1,c2){
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><circle cx="300" cy="80" r="34" fill="#fff" opacity=".35"/><path d="M0 240 L90 170 L170 220 L260 140 L400 230 V300 H0Z" fill="#fff" opacity=".28"/><text x="200" y="160" font-family="sans-serif" font-size="24" font-weight="700" fill="#fff" text-anchor="middle">'+label+'</text></svg>';
+    return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  }
+  var demoPhotos={main:'',left:[{url:ph('見本の写真 1','#9FB3C8','#E7C9A6'),caption:'第1回の様子'},{url:ph('見本の写真 2','#C9A6A0','#F1DDB8'),caption:'グループワーク'}],
+                  right:[{url:ph('見本の写真 3','#8FB5A0','#E8D7AE'),caption:'会場からの眺め'},{url:ph('見本の写真 4','#B7A3C4','#F0D2C2'),caption:'講師より'}]};
+  var demoAdmin={
+    adminLogin:function(){return {sheetUrl:'',totalPeople:3,photos:demoPhotos,sessions:cfg.sessions.map(function(s){
+      return s.no===1?{no:1,date:s.date,theme:s.theme,keyword:'',count:3,satisfaction:4.3,understanding:3.7,
+        usefulness:{'試してみたい':2,'明日から使う':1},wish:{'手を動かす時間':2,'自部署の事例':1},
+        people:[{name:'山田 花子',dept:'施設管理部',at:'10/20 14:02'},{name:'佐藤 一郎',dept:'営業部',at:'10/20 14:05'},{name:'見本 太郎',dept:'',at:'10/20 15:58'}],
+        comments:[{name:'佐藤 一郎',text:'議事録づくりにすぐ使えそうです。'}]}
+        :{no:s.no,date:s.date,theme:s.theme,keyword:'',count:0,satisfaction:null,understanding:null,usefulness:{},wish:{},people:[],comments:[]}})}},
+    adminSavePhotos:function(pw,d){demoPhotos=d;return d}
+  };
+
+  function applyPhotos(){
+    if(cfg.photoUrl){
+      var a=$('bgPhoto'),b=$('winPhoto');
+      a.onload=function(){a.classList.add('on')};a.src=cfg.photoUrl;
+      b.onload=function(){b.hidden=false;$('winFallback').style.display='none'};b.src=cfg.photoUrl;
+    }
+    $('creditWrap').hidden=!cfg.photoCredit;
+    if(cfg.photoCredit){$('credit').textContent=cfg.photoCredit;$('credit').href=cfg.photoCreditUrl||'#'}
+    renderSide($('sideL'),cfg.left,false);renderSide($('sideR'),cfg.right,true);
+  }
+  function applyConfig(){applyPhotos();setupCheckin();renderBook('')}
+
+  build();
+  ['name','dept','keyword'].forEach(function(id){$(id).addEventListener('input',check)});
+  $('name').value=store.get('opc_name')||'';$('dept').value=store.get('opc_dept')||'';$('bookName').value=$('name').value;
+  if(live){rpc('getConfig',[],function(c){cfg=c;applyConfig()},function(){applyConfig()})}
+  else{
+    $('demo').hidden=false;
+    demoStamps['山田 花子']={1:'10/20'};
+    cfg.left=demoPhotos.left;cfg.right=demoPhotos.right;
+    applyConfig();
+    if(!$('name').value)$('name').value='山田 花子';
+    $('bookName').value=$('name').value;stamps=demoStamps[$('bookName').value]||{};renderBook($('bookName').value);
+    check();
+  }
+})();
+</script>
+
+</body>
+</html>
