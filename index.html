@@ -306,16 +306,16 @@ textarea{min-height:70px;resize:vertical}
           <img id="topPreviewImg" alt="受付トップ写真のプレビュー">
           <span class="tag" id="topPreviewTag"></span>
         </div>
-        <div class="field"><label class="label" for="topUrl">写真のURL</label><input type="text" id="topUrl" placeholder="https://… 画像のURLを貼り付け"></div>
+        <div class="field"><label class="label" for="topUrl">写真のURL</label><input type="text" id="topUrl" placeholder="画像やWebページのURLを貼り付け"></div>
         <div class="field"><label class="label" for="topLabel">写真の左下の名札 <small>（空欄なら非表示）</small></label><input type="text" id="topLabel" maxlength="30" placeholder="例）東京オペラシティタワー"></div>
-        <p class="note">背景のぼかし写真にも同じ写真が使われます。Googleドライブの共有リンク（リンクを知っている全員が閲覧可）もそのまま使えます。</p>
+        <p class="note">画像のURLのほか、WebページのURLを貼ると、そのページの代表画像を自動で探して使います。Googleドライブの共有リンク（リンクを知っている全員が閲覧可）もそのまま使えます。背景のぼかし写真にも同じ写真が使われます。</p>
         <button class="btn" id="saveTop">トップの写真を保存</button>
         <div class="hint" id="topHint" role="status" aria-live="polite"></div>
       </div>
 
       <div class="survey" style="gap:12px">
         <div class="survey-title">― 左右の写真 ―</div>
-        <p class="note">画像のURLを貼り付けて保存すると、全員の画面に反映されます。</p>
+        <p class="note">画像やWebページのURLを貼ると写真が入ります（ページの場合は代表画像やロゴを自動で探します）。保存すると全員の画面に反映されます。</p>
         <div class="label">左側の写真 <small>（最大3枚）</small></div>
         <div class="photoset" id="psLeft"></div>
         <div class="label">右側の写真 <small>（最大3枚）</small></div>
@@ -598,22 +598,38 @@ textarea{min-height:70px;resize:vertical}
     },function(m){ahint('sessHint',m,true)});
   };
 
-  /* トップの写真 */
-  function previewTop(){
-    var u=$('topUrl').value.trim(),img=$('topPreviewImg'),lb=$('topLabel').value.trim();
-    var shown=/^https:\/\//.test(u)?toImg(u):'';
-    if(shown){img.setAttribute('src',shown)}else{img.removeAttribute('src')}
-    $('topPreviewTag').textContent=lb;$('topPreviewTag').hidden=!lb;
-  }
+  /* トップの写真・左右の写真：WebページのURLでも、サーバーで代表画像を探して表示する */
   function toImg(u){var m=u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/);return m?'https://lh3.googleusercontent.com/d/'+m[1]:u}
-  $('topUrl').addEventListener('input',previewTop);$('topLabel').addEventListener('input',previewTop);
+  function looksImage(u){return /\.(jpe?g|png|gif|webp|avif|svg)(\?|#|$)/i.test(u)||/googleusercontent\.com|upload\.wikimedia\.org|Special:FilePath|^data:image/i.test(u)}
+  var resolved={};
+  function resolve(u,done){
+    u=u.trim();if(!/^https?:\/\//.test(u))return done(null);
+    var d=toImg(u);if(d!==u||looksImage(u))return done({url:d,title:''});
+    if(resolved[u])return done(resolved[u]);
+    if(!live)return done({url:u,title:''});
+    rpc('adminPreviewImage',[adminPw,u],function(r){resolved[u]=r;done(r)},function(){done(null)});
+  }
+  function debounce(fn,ms){var t;return function(){var a=arguments,c=this;clearTimeout(t);t=setTimeout(function(){fn.apply(c,a)},ms)}}
+  var topSeq=0;
+  function previewTop(){
+    var u=$('topUrl').value.trim(),img=$('topPreviewImg'),lb=$('topLabel').value.trim(),my=++topSeq;
+    $('topPreviewTag').textContent=lb;$('topPreviewTag').hidden=!lb;
+    if(!u){img.removeAttribute('src');ahint('topHint','');return}
+    if(!looksImage(u)&&toImg(u)===u)ahint('topHint','ページから写真を探しています…');
+    resolve(u,function(r){
+      if(my!==topSeq)return;
+      if(r&&r.url){img.setAttribute('src',r.url);ahint('topHint','')}
+      else{img.removeAttribute('src');ahint('topHint','このURLからは写真が見つかりませんでした',true)}
+    });
+  }
+  $('topUrl').addEventListener('input',debounce(previewTop,500));$('topLabel').addEventListener('input',previewTop);
 
   /* 左右の写真 */
   function photoRow(p,key){
     var u=p&&p.url||'';
     return '<div class="photorow"><div class="thumb" style="background-image:'+(u?'url(&quot;'+esc(u)+'&quot;)':'none')+'"></div><div class="inputs">'+
-      '<input type="text" id="'+key+'_u" data-role="url" placeholder="https://… 画像のURLを貼り付け" value="'+esc(u)+'">'+
-      '<input type="text" id="'+key+'_c" data-role="cap" maxlength="30" placeholder="ひとこと（例：第1回の様子）" value="'+esc(p&&p.caption||'')+'"></div></div>';
+      '<input type="text" id="'+key+'_u" data-role="url" placeholder="画像やWebページのURLを貼り付け" value="'+esc(u)+'">'+
+      '<input type="text" id="'+key+'_c" data-role="cap" maxlength="30" placeholder="ひとこと（空欄ならサイト名）" value="'+esc(p&&p.caption||'')+'"></div></div>';
   }
   function fillPhotos(ph){
     ph=ph||{};
@@ -621,7 +637,17 @@ textarea{min-height:70px;resize:vertical}
     $('psLeft').innerHTML=[0,1,2].map(function(i){return photoRow((ph.left||[])[i],'pl'+i)}).join('');
     $('psRight').innerHTML=[0,1,2].map(function(i){return photoRow((ph.right||[])[i],'pr'+i)}).join('');
     document.querySelectorAll('.photorow [data-role=url]').forEach(function(inp){
-      inp.addEventListener('input',function(){var t=inp.closest('.photorow').querySelector('.thumb'),v=inp.value.trim();t.style.backgroundImage=/^https:\/\//.test(v)?'url("'+toImg(v).replace(/"/g,'')+'")':'none'});
+      var row=inp.closest('.photorow'),t=row.querySelector('.thumb'),cap=row.querySelector('[data-role=cap]'),my=0;
+      inp.addEventListener('input',debounce(function(){
+        var v=inp.value.trim(),n=++my;
+        if(!v){t.style.backgroundImage='none';return}
+        t.style.opacity='.4';
+        resolve(v,function(r){
+          if(n!==my)return;t.style.opacity='';
+          t.style.backgroundImage=r&&r.url?'url("'+r.url.replace(/"/g,'')+'")':'none';
+          if(r&&r.title&&!cap.value.trim())cap.placeholder=r.title+'（自動）';
+        });
+      },500));
     });
   }
   function readSet(id){
@@ -633,8 +659,8 @@ textarea{min-height:70px;resize:vertical}
     var top=$('topUrl').value.trim();
     var bad=[].concat(top?[{url:top}]:[],readSet('psLeft'),readSet('psRight')).filter(function(p){return !/^https:\/\//.test(p.url)});
     if(bad.length)return ahint(hintId,'URLは https:// から始まるものを入れてください',true);
+    ahint(hintId,'写真を探して保存しています…');
     var data={main:top,mainLabel:$('topLabel').value.trim(),left:readSet('psLeft'),right:readSet('psRight')};
-    ahint(hintId,'保存しています…');
     call('adminSavePhotos',[adminPw,data],function(saved){
       ahint(hintId,'保存しました。受付画面にも反映されています');
       cfg.left=saved.left;cfg.right=saved.right;cfg.photoLabel=saved.mainLabel;
