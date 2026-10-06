@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <title>オペラシティ AI研修カード</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -188,6 +194,8 @@ textarea{min-height:70px;resize:vertical}
 .credit{display:block;margin-top:4px;color:inherit}
 </style>
 
+</head>
+<body>
 <div class="bg" aria-hidden="true"><img id="bgPhoto" alt=""></div>
 <div class="dots" aria-hidden="true">
   <i style="left:8%;top:22%;width:12px;height:12px;background:#5E9E86"></i>
@@ -337,13 +345,14 @@ textarea{min-height:70px;resize:vertical}
 
 <script>
 (function(){
-  var DEFAULT={courseTitle:'AI研修',client:'東京オペラシティビル株式会社',organizer:'株式会社フェローズ',venue:'東京オペラシティタワー',photoUrl:'',photoCredit:'',photoCreditUrl:'',
-    sessions:[{no:1,date:'2026-10-20',time:'14:00–16:00',theme:'生成AIの基本と社内ルール',needsKeyword:false},
-              {no:2,date:'2026-11-04',time:'14:00–16:00',theme:'文書作成・要約の実践',needsKeyword:false},
-              {no:3,date:'2026-11-18',time:'14:00–16:00',theme:'データ整理と資料づくり',needsKeyword:false},
-              {no:4,date:'2026-12-02',time:'14:00–16:00',theme:'自部署の業務に組み込む',needsKeyword:false}]};
+  var DEFAULT={courseTitle:'AI研修',client:'東京オペラシティビル株式会社',organizer:'株式会社フェローズ',venue:'東京オペラシティタワー',
+    photoUrl:'',photoLabel:'東京オペラシティタワー',photoCredit:'',photoCreditUrl:'',left:[],right:[],
+    sessions:[{no:1,date:'2026-10-20',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'生成AIの基本と社内ルール',needsKeyword:false},
+              {no:2,date:'2026-11-04',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'文書作成・要約の実践',needsKeyword:false},
+              {no:3,date:'2026-11-18',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'データ整理と資料づくり',needsKeyword:false},
+              {no:4,date:'2026-12-02',start:'14:00',end:'16:00',time:'14:00–16:00',theme:'自部署の業務に組み込む',needsKeyword:false}]};
   /* ▼ GitHub Pages で使うときは、Apps Script をウェブアプリとして公開したURL（…/exec）をここに貼る ▼ */
-  var API_URL='';
+  var API_URL='https://script.google.com/macros/s/AKfycbxxPod3-N-hK0YMKkgyqMKZaf7Qz_jVK85o5J6cbZGmpeQvLCTYUsaWytbEi7Dl9TEm/exec';
   /* ▲ ここまで ▲ */
   var gas=typeof google!=='undefined'&&google.script&&google.script.run;
   var live=!!API_URL||!!gas;
@@ -364,16 +373,19 @@ textarea{min-height:70px;resize:vertical}
   function jst(){return new Date(Date.now()+9*3600e3)}
   function todayStr(){return jst().toISOString().slice(0,10)}
   function md(d){var t=new Date(d+'T00:00:00+09:00');return (t.getMonth()+1)+'/'+t.getDate()+'（'+WD[t.getDay()]+'）'}
+  function norm(v){return String(v||'').normalize('NFKC').replace(/\s+/g,'').toLowerCase()}
+  function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function timeOf(s){return s.time||(s.start?(s.start+(s.end&&s.end!==s.start?'–'+s.end:'')):'')}
 
   function hanko(date,cls){
     var id='r'+Math.random().toString(36).slice(2,7);
     return '<svg class="'+cls+'" viewBox="0 0 100 100" aria-hidden="true"><defs><filter id="'+id+'"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="'+(date.length*7)+'"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.5 1.2"/><feComposite in="SourceGraphic" operator="in"/></filter></defs>'+
       '<g filter="url(#'+id+')"><circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="4.5"/><circle cx="50" cy="50" r="37.5" fill="none" stroke="currentColor" stroke-width="1.3"/>'+
       '<text x="50" y="52" text-anchor="middle" font-family="Shippori Mincho B1,serif" font-weight="800" font-size="25" fill="currentColor">出席</text>'+
-      '<text x="50" y="71" text-anchor="middle" font-family="Josefin Sans,sans-serif" font-weight="700" font-size="11" fill="currentColor">'+date+'</text></g></svg>';
+      '<text x="50" y="71" text-anchor="middle" font-family="Josefin Sans,sans-serif" font-weight="700" font-size="11" fill="currentColor">'+esc(date)+'</text></g></svg>';
   }
 
-  /* 受付画面 */
+  /* ===== 受付 ===== */
   function setupCheckin(){
     var t=todayStr();
     current=cfg.sessions.filter(function(s){return s.date===t})[0]||null;
@@ -381,15 +393,15 @@ textarea{min-height:70px;resize:vertical}
     $('today').innerHTML=d.getUTCFullYear()+'/'+(d.getUTCMonth()+1)+'/'+d.getUTCDate()+' <b>の出席</b>';
     if(!current){
       $('sessField').hidden=false;
-      $('session').innerHTML=cfg.sessions.map(function(s){return '<option value="'+s.no+'">第'+s.no+'回　'+md(s.date)+'</option>'}).join('');
+      $('session').innerHTML=cfg.sessions.map(function(s){return '<option value="'+s.no+'">第'+s.no+'回　'+md(s.date)+' '+esc(s.start||'')+'</option>'}).join('');
       var next=cfg.sessions.filter(function(s){return s.date>=t})[0]||cfg.sessions[0];
       $('session').value=String(next.no);
       $('session').onchange=pickSession; pickSession();
-    }else{ showSession(current) }
+    }else{ $('sessField').hidden=true; showSession(current) }
   }
   function pickSession(){current=cfg.sessions.filter(function(s){return String(s.no)===$('session').value})[0];showSession(current)}
   function showSession(s){
-    $('sessLine').textContent='第'+s.no+'回 ・ '+s.theme;
+    $('sessLine').textContent='第'+s.no+'回 ・ '+md(s.date)+' '+timeOf(s)+' ・ '+s.theme;
     $('kwField').hidden=!s.needsKeyword;
     check();
   }
@@ -422,7 +434,7 @@ textarea{min-height:70px;resize:vertical}
     store.set('opc_name',p.name);store.set('opc_dept',p.dept);
     $('press').disabled=true;hint('押しています…');
     var ok=function(r){
-      stamps=r.stamps;
+      stamps=r.stamps||{};saveCache(p.name,stamps);loadedFor=norm(p.name);
       $('bigStamp').innerHTML=hanko(r.date,'big');
       $('overlayMsg').textContent='第'+p.session+'回、出席しました！';
       $('overlay').hidden=false;
@@ -431,7 +443,7 @@ textarea{min-height:70px;resize:vertical}
     var ng=function(e){hint(String(e&&e.message||e||'記録できませんでした').replace(/^Error:\s*/,''),true);$('press').disabled=false};
     if(live){rpc('submit',[p],ok,ng)}
     else{
-      var k=p.name;demoStamps[k]=demoStamps[k]||{};
+      var k=norm(p.name);demoStamps[k]=demoStamps[k]||{};
       if(demoStamps[k][p.session])return ng('第'+p.session+'回はもう押してあります');
       var d=jst();demoStamps[k][p.session]=(d.getUTCMonth()+1)+'/'+d.getUTCDate();
       setTimeout(function(){ok({stamps:demoStamps[k],date:demoStamps[k][p.session]})},300);
@@ -442,23 +454,40 @@ textarea{min-height:70px;resize:vertical}
     $('comment').value='';$('keyword').value='';check();
   }
 
-  /* スタンプ帳 */
-  function renderBook(name){
+  /* ===== スタンプ帳（端末に覚えた結果をすぐ出し、裏で最新に更新） ===== */
+  var loadedFor='',seq=0;
+  function cacheKey(nm){return 'opc_st_'+norm(nm)}
+  function saveCache(nm,st){store.set(cacheKey(nm),JSON.stringify(st||{}))}
+  function readCache(nm){try{var v=store.get(cacheKey(nm));return v?JSON.parse(v):null}catch(e){return null}}
+
+  function renderBook(name,searching){
     var n=0;
+    $('book').className='book'+(searching?' loading':'');
     $('book').innerHTML=cfg.sessions.map(function(s,i){
       var got=stamps[s.no];if(got)n++;
-      return '<div class="cell'+(got?' done':'')+'" style="--r:'+TILT[i%4]+'deg"><div class="no">第'+s.no+'回</div><div class="when">'+md(s.date)+'</div>'+
-        '<div class="seal">'+(got?hanko(got,'hanko'):'まだ')+'</div><div class="th">'+s.theme+'</div></div>';
+      return '<div class="cell'+(got?' done':'')+'" style="--r:'+TILT[i%4]+'deg"><div class="no">第'+s.no+'回</div><div class="when">'+md(s.date)+' '+esc(s.start||'')+'</div>'+
+        '<div class="seal">'+(got?hanko(got,'hanko'):'まだ')+'</div><div class="th">'+esc(s.theme)+'</div></div>';
     }).join('');
-    $('progress').innerHTML=name?(name+' さん　<b>'+n+'</b>/ '+cfg.sessions.length+' こ'):'';
+    $('progress').innerHTML=name?(esc(name)+' さん　<b>'+n+'</b>/ '+cfg.sessions.length+' こ'+(searching?'<div class="searching">最新の状況をたしかめています…</div>':'')):'';
     $('bookLead').textContent=n===cfg.sessions.length?'全回コンプリート！ おつかれさまでした':'全'+cfg.sessions.length+'回、ぜんぶ集めたら修了です';
   }
-  $('openBook').addEventListener('click',function(){
-    var nm=$('bookName').value.trim();if(!nm)return;
+  function lookup(nm){
+    nm=String(nm||'').trim();if(!nm)return;
     store.set('opc_name',nm);
-    if(live){rpc('getStamps',[nm,store.get('opc_dept')||''],function(r){stamps=r||{};renderBook(nm)},function(){})}
-    else{stamps=demoStamps[nm]||{};renderBook(nm)}
-  });
+    var my=++seq,cached=readCache(nm);
+    stamps=cached||{};renderBook(nm,true);
+    if(!live){stamps=demoStamps[norm(nm)]||{};loadedFor=norm(nm);setTimeout(function(){if(my===seq)renderBook(nm)},150);return}
+    var dept=norm(nm)===norm($('name').value)?$('dept').value.trim():'';
+    rpc('getStamps',[nm,dept],function(r){
+      if(my!==seq)return;
+      stamps=r||{};saveCache(nm,stamps);loadedFor=norm(nm);renderBook(nm);
+    },function(m){
+      if(my!==seq)return;
+      renderBook(nm);$('progress').insertAdjacentHTML('beforeend','<div class="searching">'+esc(m)+'</div>');
+    });
+  }
+  $('openBook').addEventListener('click',function(){lookup($('bookName').value)});
+  $('bookName').addEventListener('keydown',function(e){if(e.key==='Enter')lookup($('bookName').value)});
 
   function show(which){
     ['checkin','book','admin'].forEach(function(k){
@@ -466,12 +495,15 @@ textarea{min-height:70px;resize:vertical}
     });
   }
   $('tab-checkin').onclick=function(){show('checkin')};
-  $('tab-book').onclick=function(){show('book')};
+  $('tab-book').onclick=function(){
+    show('book');
+    var nm=$('bookName').value.trim()||$('name').value.trim();
+    if(nm&&norm(nm)!==loadedFor){$('bookName').value=nm;lookup(nm)}
+  };
   $('tab-admin').onclick=function(){show('admin')};
 
-  /* 左右の写真 */
+  /* ===== 写真 ===== */
   var PTILT=[-4,3,-2],TTILT=[5,-6,3];
-  function esc(t){return String(t||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function renderSide(el,list,flip){
     el.innerHTML='';
     (list||[]).forEach(function(p,i){
@@ -482,8 +514,22 @@ textarea{min-height:70px;resize:vertical}
       f.appendChild(img);f.appendChild(c);el.appendChild(f);
     });
   }
+  function applyPhotos(){
+    var a=$('bgPhoto'),b=$('winPhoto');
+    if(cfg.photoUrl){
+      a.classList.remove('on');a.onload=function(){a.classList.add('on')};a.src=cfg.photoUrl;
+      b.onload=function(){b.hidden=false;$('winFallback').style.display='none'};
+      b.onerror=function(){b.hidden=true;$('winFallback').style.display=''};
+      b.src=cfg.photoUrl;
+    }
+    var label=cfg.photoLabel==null?'東京オペラシティタワー':cfg.photoLabel;
+    $('heroTag').textContent=label;$('heroTag').hidden=!label;
+    $('creditWrap').hidden=!cfg.photoCredit;
+    if(cfg.photoCredit){$('credit').textContent=cfg.photoCredit;$('credit').href=cfg.photoCreditUrl||'#'}
+    renderSide($('sideL'),cfg.left,false);renderSide($('sideR'),cfg.right,true);
+  }
 
-  /* 管理ページ */
+  /* ===== 管理ページ ===== */
   var adminPw='',adminState=null;
   function ahint(id,t,err){var h=$(id);h.textContent=t;h.className='hint'+(err?' err':'')}
   function call(fn,args,ok,ng){
@@ -496,7 +542,7 @@ textarea{min-height:70px;resize:vertical}
     call('adminLogin',[pw],function(d){adminPw=pw;$('adminPw').value='';ahint('adminHint','');$('adminLogin').hidden=true;$('adminBody').hidden=false;renderAdmin(d)},function(m){ahint('adminHint',m,true)});
   };
   $('adminPw').addEventListener('keydown',function(e){if(e.key==='Enter')$('adminGo').click()});
-  $('adminReload').onclick=function(){call('adminLogin',[adminPw],renderAdmin,function(m){ahint('photoHint',m,true)})};
+  $('adminReload').onclick=function(){call('adminLogin',[adminPw],renderAdmin,function(m){ahint('sessHint',m,true)})};
   $('adminOut').onclick=function(){adminPw='';$('adminBody').hidden=true;$('adminLogin').hidden=false;show('checkin')};
 
   function bars(obj,total){
@@ -518,85 +564,141 @@ textarea{min-height:70px;resize:vertical}
         '<div class="sub">出席者</div><div class="names">'+s.people.map(function(p){return '<span title="'+esc(p.at)+'">'+esc(p.name)+(p.dept?'（'+esc(p.dept)+'）':'')+'</span>'}).join('')+'</div>'+
         '<div class="sub">ひとこと</div>'+(s.comments.length?s.comments.map(function(c){return '<div class="cmt"><b>'+esc(c.name)+'</b>'+esc(c.text)+'</div>'}).join(''):'<div class="empty">なし</div>')
       ):'<div class="empty">まだ出席者はいません</div>';
-      return '<details class="sess"'+(i===0&&s.count?' open':'')+'><summary><span class="n">第'+s.no+'回</span><span class="t">'+md(s.date)+' '+esc(s.theme)+'</span><span class="c">'+s.count+'人</span></summary><div class="body">'+body+'</div></details>';
+      return '<details class="sess"'+(i===0&&s.count?' open':'')+'><summary><span class="n">第'+s.no+'回</span><span class="t">'+md(s.date)+' '+esc(s.start||'')+' '+esc(s.theme)+'</span><span class="c">'+s.count+'人</span></summary><div class="body">'+body+'</div></details>';
     }).join('');
+    renderSessEditor(d.sessions);
     fillPhotos(d.photos);
   }
 
-  function photoRow(p,withCaption,key){
+  /* 日程とタイトル */
+  function renderSessEditor(list){
+    $('sessEditor').innerHTML=list.map(function(s,i){
+      var k='se'+i;
+      return '<div class="sessrow" data-i="'+i+'"><div class="n">第'+(i+1)+'回</div>'+
+        '<div class="when"><input type="date" id="'+k+'_d" data-f="date" value="'+esc(s.date)+'" aria-label="第'+(i+1)+'回の日付">'+
+        '<input type="time" id="'+k+'_s" data-f="start" value="'+esc(s.start||'')+'" aria-label="開始時刻"><span>〜</span>'+
+        '<input type="time" id="'+k+'_e" data-f="end" value="'+esc(s.end||'')+'" aria-label="終了時刻"></div>'+
+        '<input type="text" id="'+k+'_t" data-f="theme" maxlength="40" value="'+esc(s.theme)+'" placeholder="研修タイトル" aria-label="第'+(i+1)+'回の研修タイトル">'+
+        '<input type="text" id="'+k+'_k" data-f="keyword" maxlength="30" value="'+esc(s.keyword||'')+'" placeholder="合言葉（任意）" aria-label="第'+(i+1)+'回の合言葉"></div>';
+    }).join('');
+  }
+  $('saveSessions').onclick=function(){
+    var list=Array.prototype.map.call($('sessEditor').querySelectorAll('.sessrow'),function(r){
+      var o={};r.querySelectorAll('[data-f]').forEach(function(inp){o[inp.dataset.f]=inp.value.trim()});return o;
+    });
+    for(var i=0;i<list.length;i++){
+      if(!list[i].date||!list[i].start)return ahint('sessHint','第'+(i+1)+'回の日付と開始時刻を入れてください',true);
+      if(!list[i].theme)return ahint('sessHint','第'+(i+1)+'回の研修タイトルを入れてください',true);
+    }
+    ahint('sessHint','保存しています…');
+    call('adminSaveSessions',[adminPw,list],function(d){
+      cfg.sessions=d.sessions.map(function(s){return {no:s.no,date:s.date,start:s.start,end:s.end,time:s.start+(s.end&&s.end!==s.start?'–'+s.end:''),theme:s.theme,needsKeyword:!!s.keyword}});
+      setupCheckin();renderBook($('bookName').value.trim());renderAdmin(d);
+      ahint('sessHint','保存しました。受付とスタンプ帳に反映されています');
+    },function(m){ahint('sessHint',m,true)});
+  };
+
+  /* トップの写真 */
+  function previewTop(){
+    var u=$('topUrl').value.trim(),img=$('topPreviewImg'),lb=$('topLabel').value.trim();
+    var shown=/^https:\/\//.test(u)?toImg(u):'';
+    if(shown){img.setAttribute('src',shown)}else{img.removeAttribute('src')}
+    $('topPreviewTag').textContent=lb;$('topPreviewTag').hidden=!lb;
+  }
+  function toImg(u){var m=u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]+)/);return m?'https://lh3.googleusercontent.com/d/'+m[1]:u}
+  $('topUrl').addEventListener('input',previewTop);$('topLabel').addEventListener('input',previewTop);
+
+  /* 左右の写真 */
+  function photoRow(p,key){
     var u=p&&p.url||'';
     return '<div class="photorow"><div class="thumb" style="background-image:'+(u?'url(&quot;'+esc(u)+'&quot;)':'none')+'"></div><div class="inputs">'+
       '<input type="text" id="'+key+'_u" data-role="url" placeholder="https://… 画像のURLを貼り付け" value="'+esc(u)+'">'+
-      (withCaption?'<input type="text" id="'+key+'_c" data-role="cap" maxlength="30" placeholder="ひとこと（例：第1回の様子）" value="'+esc(p&&p.caption||'')+'">':'')+'</div></div>';
+      '<input type="text" id="'+key+'_c" data-role="cap" maxlength="30" placeholder="ひとこと（例：第1回の様子）" value="'+esc(p&&p.caption||'')+'"></div></div>';
   }
   function fillPhotos(ph){
     ph=ph||{};
-    $('psMain').innerHTML=photoRow({url:ph.main},false,'pm0');
-    $('psLeft').innerHTML=[0,1,2].map(function(i){return photoRow((ph.left||[])[i],true,'pl'+i)}).join('');
-    $('psRight').innerHTML=[0,1,2].map(function(i){return photoRow((ph.right||[])[i],true,'pr'+i)}).join('');
+    $('topUrl').value=ph.main||'';$('topLabel').value=ph.mainLabel==null?'':ph.mainLabel;previewTop();
+    $('psLeft').innerHTML=[0,1,2].map(function(i){return photoRow((ph.left||[])[i],'pl'+i)}).join('');
+    $('psRight').innerHTML=[0,1,2].map(function(i){return photoRow((ph.right||[])[i],'pr'+i)}).join('');
     document.querySelectorAll('.photorow [data-role=url]').forEach(function(inp){
-      inp.addEventListener('input',function(){var t=inp.closest('.photorow').querySelector('.thumb'),v=inp.value.trim();t.style.backgroundImage=/^https:\/\//.test(v)?'url("'+v.replace(/"/g,'')+'")':'none'});
+      inp.addEventListener('input',function(){var t=inp.closest('.photorow').querySelector('.thumb'),v=inp.value.trim();t.style.backgroundImage=/^https:\/\//.test(v)?'url("'+toImg(v).replace(/"/g,'')+'")':'none'});
     });
   }
   function readSet(id){
     return Array.prototype.map.call($(id).querySelectorAll('.photorow'),function(r){
-      var c=r.querySelector('[data-role=cap]');return {url:r.querySelector('[data-role=url]').value.trim(),caption:c?c.value.trim():''};
+      return {url:r.querySelector('[data-role=url]').value.trim(),caption:r.querySelector('[data-role=cap]').value.trim()};
     }).filter(function(p){return p.url});
   }
-  $('savePhotos').onclick=function(){
-    var bad=[].concat(readSet('psMain'),readSet('psLeft'),readSet('psRight')).filter(function(p){return !/^https:\/\//.test(p.url)});
-    if(bad.length)return ahint('photoHint','URLは https:// から始まるものを入れてください',true);
-    var main=readSet('psMain')[0];
-    var data={main:main?main.url:'',left:readSet('psLeft'),right:readSet('psRight')};
-    ahint('photoHint','保存しています…');
+  function savePhotos(hintId){
+    var top=$('topUrl').value.trim();
+    var bad=[].concat(top?[{url:top}]:[],readSet('psLeft'),readSet('psRight')).filter(function(p){return !/^https:\/\//.test(p.url)});
+    if(bad.length)return ahint(hintId,'URLは https:// から始まるものを入れてください',true);
+    var data={main:top,mainLabel:$('topLabel').value.trim(),left:readSet('psLeft'),right:readSet('psRight')};
+    ahint(hintId,'保存しています…');
     call('adminSavePhotos',[adminPw,data],function(saved){
-      ahint('photoHint','保存しました。受付画面にも反映されています');
-      cfg.left=saved.left;cfg.right=saved.right;if(saved.main){cfg.photoUrl=saved.main;cfg.photoCredit=''}
+      ahint(hintId,'保存しました。受付画面にも反映されています');
+      cfg.left=saved.left;cfg.right=saved.right;cfg.photoLabel=saved.mainLabel;
+      if(saved.main){cfg.photoUrl=saved.main;cfg.photoCredit=''}
       applyPhotos();fillPhotos(saved);
-    },function(m){ahint('photoHint',m,true)});
-  };
+    },function(m){ahint(hintId,m,true)});
+  }
+  $('saveTop').onclick=function(){savePhotos('topHint')};
+  $('savePhotos').onclick=function(){savePhotos('photoHint')};
 
-  /* プレビュー用の見本 */
+  /* ===== プレビュー用の見本 ===== */
   function ph(label,c1,c2){
     var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><circle cx="300" cy="80" r="34" fill="#fff" opacity=".35"/><path d="M0 240 L90 170 L170 220 L260 140 L400 230 V300 H0Z" fill="#fff" opacity=".28"/><text x="200" y="160" font-family="sans-serif" font-size="24" font-weight="700" fill="#fff" text-anchor="middle">'+label+'</text></svg>';
     return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
-  var demoPhotos={main:'',left:[{url:ph('見本の写真 1','#9FB3C8','#E7C9A6'),caption:'第1回の様子'},{url:ph('見本の写真 2','#C9A6A0','#F1DDB8'),caption:'グループワーク'}],
+  var demoPhotos={main:'',mainLabel:'東京オペラシティタワー',left:[{url:ph('見本の写真 1','#9FB3C8','#E7C9A6'),caption:'第1回の様子'},{url:ph('見本の写真 2','#C9A6A0','#F1DDB8'),caption:'グループワーク'}],
                   right:[{url:ph('見本の写真 3','#8FB5A0','#E8D7AE'),caption:'会場からの眺め'},{url:ph('見本の写真 4','#B7A3C4','#F0D2C2'),caption:'講師より'}]};
-  var demoAdmin={
-    adminLogin:function(){return {sheetUrl:'',totalPeople:3,photos:demoPhotos,sessions:cfg.sessions.map(function(s){
-      return s.no===1?{no:1,date:s.date,theme:s.theme,keyword:'',count:3,satisfaction:4.3,understanding:3.7,
+  var demoKw={};
+  function demoData(){
+    return {sheetUrl:'',totalPeople:3,photos:demoPhotos,sessions:cfg.sessions.map(function(s){
+      var base={no:s.no,date:s.date,start:s.start,end:s.end,theme:s.theme,keyword:demoKw[s.no]||''};
+      return s.no===1?Object.assign(base,{count:3,satisfaction:4.3,understanding:3.7,
         usefulness:{'試してみたい':2,'明日から使う':1},wish:{'手を動かす時間':2,'自部署の事例':1},
         people:[{name:'山田 花子',dept:'施設管理部',at:'10/20 14:02'},{name:'佐藤 一郎',dept:'営業部',at:'10/20 14:05'},{name:'見本 太郎',dept:'',at:'10/20 15:58'}],
-        comments:[{name:'佐藤 一郎',text:'議事録づくりにすぐ使えそうです。'}]}
-        :{no:s.no,date:s.date,theme:s.theme,keyword:'',count:0,satisfaction:null,understanding:null,usefulness:{},wish:{},people:[],comments:[]}})}},
-    adminSavePhotos:function(pw,d){demoPhotos=d;return d}
+        comments:[{name:'佐藤 一郎',text:'議事録づくりにすぐ使えそうです。'}]})
+        :Object.assign(base,{count:0,satisfaction:null,understanding:null,usefulness:{},wish:{},people:[],comments:[]})})};
+  }
+  var demoAdmin={
+    adminLogin:function(){return demoData()},
+    adminSavePhotos:function(pw,d){demoPhotos=d;return d},
+    adminSaveSessions:function(pw,list){
+      cfg.sessions=list.map(function(s,i){demoKw[i+1]=s.keyword;return {no:i+1,date:s.date,start:s.start,end:s.end||s.start,theme:s.theme,needsKeyword:!!s.keyword}});
+      return demoData();
+    }
   };
 
-  function applyPhotos(){
-    if(cfg.photoUrl){
-      var a=$('bgPhoto'),b=$('winPhoto');
-      a.onload=function(){a.classList.add('on')};a.src=cfg.photoUrl;
-      b.onload=function(){b.hidden=false;$('winFallback').style.display='none'};b.src=cfg.photoUrl;
-    }
-    $('creditWrap').hidden=!cfg.photoCredit;
-    if(cfg.photoCredit){$('credit').textContent=cfg.photoCredit;$('credit').href=cfg.photoCreditUrl||'#'}
-    renderSide($('sideL'),cfg.left,false);renderSide($('sideR'),cfg.right,true);
-  }
-  function applyConfig(){applyPhotos();setupCheckin();renderBook('')}
+  function applyConfig(){applyPhotos();setupCheckin()}
 
+  /* ===== 起動 ===== */
   build();
   ['name','dept','keyword'].forEach(function(id){$(id).addEventListener('input',check)});
-  $('name').value=store.get('opc_name')||'';$('dept').value=store.get('opc_dept')||'';$('bookName').value=$('name').value;
-  if(live){rpc('getConfig',[],function(c){cfg=c;applyConfig()},function(){applyConfig()})}
-  else{
+  var savedName=store.get('opc_name')||'';
+  $('name').value=savedName;$('dept').value=store.get('opc_dept')||'';$('bookName').value=savedName;
+  if(savedName){var c0=readCache(savedName);if(c0)stamps=c0}
+  renderBook(savedName,!!savedName&&live);
+  applyConfig();
+  if(live){
+    rpc('getBoot',[savedName,$('dept').value.trim()],function(b){
+      cfg=b.config;applyConfig();
+      if(savedName){stamps=b.stamps||{};saveCache(savedName,stamps);loadedFor=norm(savedName)}
+      renderBook(savedName);
+    },function(){renderBook(savedName)});
+  }else{
     $('demo').hidden=false;
-    demoStamps['山田 花子']={1:'10/20'};
+    demoStamps[norm('山田 花子')]={1:'10/20'};
     cfg.left=demoPhotos.left;cfg.right=demoPhotos.right;
     applyConfig();
     if(!$('name').value)$('name').value='山田 花子';
-    $('bookName').value=$('name').value;stamps=demoStamps[$('bookName').value]||{};renderBook($('bookName').value);
+    $('bookName').value=$('name').value;stamps=demoStamps[norm($('bookName').value)]||{};loadedFor=norm($('bookName').value);renderBook($('bookName').value);
     check();
   }
 })();
 </script>
+
+
+</body>
+</html>
